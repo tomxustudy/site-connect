@@ -1,0 +1,201 @@
+/* src/pages/my-records/index.scss */
+
+.records-page {
+  min-height: 100vh;
+  background-color: var(--bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  padding: 60rpx 40rpx 40rpx;
+  background: #fff;
+  border-bottom: 1px solid var(--divider);
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.records-scroll-area {
+  flex: 1;
+}
+
+.records-list-content {
+  padding: 32rpx;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 200rpx;
+  color: var(--text-secondary);
+
+  .huge-icon {
+    font-size: 120rpx;
+    margin-bottom: 32rpx;
+  }
+}
+
+.record-material-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &.is-voided {
+    opacity: 0.4;
+    filter: grayscale(100%) contrast(0.8);
+    background: #f8f9fa !important;
+    pointer-events: none;
+    /* 防止重复点击作废 */
+
+    &::after {
+      content: "VOID";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      font-size: 80rpx;
+      font-weight: 800;
+      color: rgba(0, 0, 0, 0.05);
+      border: 8rpx solid rgba(0, 0, 0, 0.05);
+      padding: 10rpx 30rpx;
+      pointer-events: none;
+    }
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 16rpx;
+
+      .status-chip {
+        padding: 4rpx 16rpx;
+        border-radius: 40rpx;
+        font-size: 24rpx;
+        font-weight: bold;
+
+        &.pending {
+          background: #fff7ed;
+          color: #c2410c;
+          border: 1px solid #ffedd5;
+        }
+
+        &.confirmed {
+          background: #f0fdf4;
+          color: #15803d;
+          border: 1px solid #dcfce7;
+        }
+
+        &.voided {
+          background: #f3f4f6;
+          color: #4b5563;
+          border: 1px solid #e5e7eb;
+        }
+      }
+
+      .site-pill {
+        background: var(--bg-page);
+        padding: 4rpx 12rpx;
+        border-radius: 8rpx;
+      }
+    }
+
+    .type-tag {
+      font-size: 24rpx;
+      font-weight: bold;
+      padding: 4rpx 12rpx;
+      border-radius: 8rpx;
+
+      &.label-blue {
+        color: var(--primary);
+        background: var(--primary-light);
+      }
+
+      &.label-orange {
+        color: #c2410c;
+        background: #fff7ed;
+      }
+
+      &.label-green {
+        color: var(--success);
+        background: #f0fdf4;
+      }
+    }
+  }
+
+  .card-middle {
+    display: flex;
+    gap: 24rpx;
+
+    .image-preview-wrapper {
+      width: 160rpx;
+      height: 160rpx;
+      background: var(--bg-page);
+      border-radius: var(--radius-md);
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--divider);
+
+      .records-thumb {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .content-detail {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+
+      .record-description {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        min-height: 80rpx;
+      }
+
+      .record-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10rpx;
+
+        .meta-time {
+          font-size: 24rpx;
+        }
+
+        .void-btn-inline {
+          font-size: 28rpx;
+          color: var(--danger);
+          font-weight: bold;
+          padding: 8rpx 24rpx;
+          border: 2rpx solid var(--danger);
+          border-radius: 30rpx;
+          background: rgba(217, 48, 37, 0.05);
+
+          &:active {
+            opacity: 0.6;
+            background: rgba(217, 48, 37, 0.15);
+          }
+        }
+      }
+    }
+  }
+}

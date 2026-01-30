@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # 1. 数据库服务
+  db:
+    image: postgres:15-alpine
+    restart: always
+    container_name: site_connect_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: my_secure_password_2026  # 密码暂时用这个，以后改
+      POSTGRES_DB: site_connect
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data # 数据持久化到当前目录
+
+  # 2. 数据库管理界面 (Web版)
+  # 部署好后，你用浏览器访问 http://你的服务器IP:8080 就能图形化管理数据库
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    container_name: site_connect_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db

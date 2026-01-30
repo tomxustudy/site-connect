@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-blue: #2563eb;
+  --bg-page: #f8f9fa;
+  --sidebar-bg: #0f172a;
+}
+
+body {
+  @apply bg-[#f8f9fa] text-slate-900;
+  font-family: 'Inter', -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+/* 隐藏横向滚动条 */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 按钮点击回弹效果 */
+.btn-active-scale:active {
+  @apply scale-95;
+}
+
+/* 自定义输入框样式 */
+.admin-input {
+  @apply w-full bg-white border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-medium focus:border-blue-500 focus:ring-4 ring-blue-50/50 outline-none transition-all;
+}

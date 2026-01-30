@@ -1,0 +1,115 @@
+/* 工地通 - 专业级建筑工程 UI 系统 */
+
+:root {
+    /* 核心色彩：深邃工程蓝 (参考卡特彼勒/中望等专业感) */
+    --primary: #1E40AF;
+    --primary-dark: #1E3A8A;
+    --primary-light: #DBEAFE;
+
+    /* 辅助色彩 */
+    --accent: #F59E0B;
+    /* 琥珀黄 - 醒目且不廉价 */
+    --success: #059669;
+    --warning: #D97706;
+    --danger: #DC2626;
+
+    /* 中性色系统 (大厂级细腻度) */
+    --bg-page: #F8FAFC;
+    /* 极轻微的蓝灰底色，更有质感 */
+    --bg-surface: #FFFFFF;
+    --text-main: #0F172A;
+    /* 接近黑色的深蓝，比纯黑高级 */
+    --text-muted: #64748B;
+    /* 经典石板灰 */
+    --divider: #E2E8F0;
+
+    /* 交互与形状 */
+    --radius-xl: 32rpx;
+    --radius-lg: 24rpx;
+    --radius-md: 16rpx;
+
+    /* 核心阴影：大厂常用微阴影 */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-btn: 0 10rpx 30rpx rgba(30, 64, 175, 0.15);
+}
+
+page {
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
+}
+
+/* --- 交互动效 - 彻底解决“变白”问题 --- */
+.btn-hover {
+    opacity: 0.9;
+    transform: scale(0.96);
+    transition: all 0.2s ease;
+}
+
+.ripple:active {
+    background-color: rgba(30, 64, 175, 0.05) !important;
+}
+
+/* --- 排版字号 --- */
+.t-header {
+    font-size: 48rpx;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -1rpx;
+}
+
+.t-title {
+    font-size: 36rpx;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.t-body {
+    font-size: 32rpx;
+    color: var(--text-muted);
+}
+
+/* --- 专业级卡片 --- */
+.card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    padding: 40rpx;
+    margin-bottom: 30rpx;
+    border: 1rpx solid rgba(226, 232, 240, 0.6);
+    box-shadow: var(--shadow-sm);
+}
+
+/* --- 专业级按钮系统 --- */
+.primary-btn {
+    background: var(--primary);
+    color: #fff;
+    border-radius: var(--radius-md);
+    padding: 30rpx 0;
+    font-size: 34rpx;
+    font-weight: 700;
+    box-shadow: var(--shadow-btn);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &::after {
+        border: none;
+    }
+}
+
+.secondary-btn {
+    background: #fff;
+    color: var(--primary);
+    border: 3rpx solid var(--primary-light);
+    border-radius: var(--radius-md);
+    padding: 28rpx 0;
+    font-size: 32rpx;
+    font-weight: 700;
+
+    &::after {
+        border: none;
+    }
+}

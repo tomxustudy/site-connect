@@ -1,0 +1,111 @@
+/* src/pages/index/index.scss */
+
+.index-page {
+  min-height: 100vh;
+  padding: 40rpx 32rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome-header {
+  margin-bottom: 50rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .user-profile {
+    display: flex;
+    flex-direction: column;
+    gap: 8rpx;
+  }
+
+  .online-status {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+    background: #fff;
+    padding: 10rpx 24rpx;
+    border-radius: 40rpx;
+    border: 1px solid var(--divider);
+    box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
+
+    .dot-green {
+      width: 14rpx;
+      height: 14rpx;
+      background-color: var(--success);
+      border-radius: 50%;
+    }
+  }
+}
+
+.main-actions {
+  flex: 1;
+
+  .section-title {
+    margin-bottom: 32rpx;
+    display: block;
+  }
+
+  .action-card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    padding: 48rpx 40rpx;
+    margin-bottom: 32rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--divider);
+    transition: transform 0.1s ease;
+
+    &:active {
+      transform: scale(0.98);
+      background-color: #f1f3f4;
+    }
+
+    .card-left {
+      display: flex;
+      align-items: center;
+      gap: 40rpx;
+
+      .card-icon {
+        font-size: 72rpx;
+      }
+
+      .card-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8rpx;
+
+        .card-label {
+          color: var(--text-primary);
+        }
+      }
+    }
+
+    .arrow {
+      color: var(--divider);
+      font-size: 40rpx;
+    }
+
+    /* 品牌色引导 */
+    &.blue-ripple {
+      border-left: 12rpx solid var(--primary);
+    }
+
+    &.orange-ripple {
+      border-left: 12rpx solid var(--warning);
+    }
+
+    &.green-ripple {
+      border-left: 12rpx solid var(--success);
+    }
+  }
+}
+
+.system-footer {
+  margin-top: auto;
+  padding: 40rpx 0;
+  text-align: center;
+  border-top: 1px solid var(--divider);
+}

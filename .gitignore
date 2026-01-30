@@ -1,0 +1,13 @@
+# Monorepo root gitignore
+node_modules/
+dist/
+build_output/
+*.log
+.DS_Store
+.env
+uploads/
+pgdata/
+*.tmp
+.gemini/
+.agent/
+brain/
