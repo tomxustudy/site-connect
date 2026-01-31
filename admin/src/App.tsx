@@ -3,7 +3,7 @@ import {
   LayoutGrid, Download, Settings,
   Search, Filter, ChevronRight,
   Clock, User, CheckCircle, XCircle,
-  FileText, Send, AlertCircle, RefreshCw, Box, Plus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, Link2, ChevronLeft, CheckSquare, Square
+  FileText, Send, AlertCircle, RefreshCw, Box, Plus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, Link2, ChevronLeft, CheckSquare, Square, MapPin
 } from 'lucide-react';
 import axios from 'axios';
 import JSZip from 'jszip';
@@ -343,14 +343,20 @@ export default function AdminApp() {
                           {users.map(u => (
                             <tr key={u.id} className="hover:bg-slate-50/50">
                               <td className="px-8 py-8 font-black text-slate-900">{u.name}</td>
-                              <td className="px-8 py-8 text-slate-400 font-mono text-[13px] flex items-center gap-2"><Smartphone size={16} className="text-blue-400" /> {u.phone}</td>
+                              <td className="px-8 py-8 text-slate-400 font-mono text-[13px] flex items-center gap-2"><Smartphone size={16} className="text-gray-400" /> {u.phone}</td>
                               <td className="px-8 py-8">
-                                {u.openid ? <span className="text-green-600 flex items-center gap-1 bg-green-50 px-2 py-1 rounded w-fit text-[11px]"><Link2 size={12} /> 已绑定 ({u.openid.slice(0, 6)}...)</span> : <span className="text-orange-400 flex items-center gap-1 opacity-60 font-medium italic text-[11px] bg-orange-50 px-2 py-1 rounded w-fit"><RefreshCw size={12} /> 待首次登录</span>}
+                                {u.openid ? (
+                                  <span className="text-green-600 text-xs bg-green-50 px-2 py-1 rounded flex items-center gap-1 w-fit border border-green-100 font-bold">
+                                    <CheckCircle size={10} /> 已绑定 ({u.openid.slice(0, 6)}...)
+                                  </span>
+                                ) : (
+                                  <span className="text-orange-400 text-xs bg-orange-50 px-2 py-1 rounded w-fit border border-orange-100 font-bold">待首次登录</span>
+                                )}
                               </td>
-                              <td className="px-8 py-8 flex gap-1 flex-wrap">{u.authorized_sites.map(s => <span key={s} className="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-black border text-slate-500">{s}</span>)}</td>
-                              <td className="px-8 py-8 text-right space-x-2">
-                                <button className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit3 size={18} /></button>
-                                <button className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
+                              <td className="px-8 py-8 flex gap-1 flex-wrap">{u.authorized_sites.map(s => <span key={s} className="px-2 py-1 bg-slate-50 text-slate-600 border border-slate-200 rounded text-[10px] font-bold">{s}</span>)}</td>
+                              <td className="px-8 py-8 text-right">
+                                <button className="text-blue-600 hover:underline mr-4 text-sm font-bold">编辑</button>
+                                <button className="text-red-500 hover:underline text-sm font-bold">删除</button>
                               </td>
                             </tr>
                           ))}
@@ -372,17 +378,16 @@ export default function AdminApp() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {sites.map(s => (
-                        <div key={s.id} className="p-8 bg-slate-50 border border-slate-100 rounded-[32px] flex flex-col justify-between group hover:border-blue-500 transition-all">
-                          <div>
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm"><Box size={24} /></div>
-                              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button className="text-slate-300 hover:text-blue-500 transition-colors"><Edit3 size={18} /></button>
-                                <button className="text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
-                              </div>
+                        <div key={s.id} className="p-6 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between hover:border-blue-400 transition-all bg-white shadow-sm">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                              <MapPin size={20} />
                             </div>
-                            <h4 className="font-black text-slate-900 text-lg mb-1">{s.name}</h4>
-                            <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">Est. {new Date(s.created_at).toLocaleDateString()}</p>
+                            <span className="font-bold text-slate-800 text-lg">{s.name}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button className="p-2 text-slate-400 hover:text-blue-600"><Edit3 size={16} /></button>
+                            <button className="p-2 text-slate-400 hover:text-red-600"><Trash2 size={16} /></button>
                           </div>
                         </div>
                       ))}
