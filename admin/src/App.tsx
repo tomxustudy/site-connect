@@ -62,6 +62,7 @@ export default function AdminApp() {
   const [filterSite, setFilterSite] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterUser, setFilterUser] = useState('');
+  const [filterDate, setFilterDate] = useState('');
 
   // 多选状态
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -190,6 +191,7 @@ export default function AdminApp() {
     if (filterSite && r.site_name !== filterSite) return false;
     if (filterType && r.type !== filterType) return false;
     if (filterUser && r.recorder_name !== filterUser) return false;
+    if (filterDate && !r.server_created_at.startsWith(filterDate)) return false;
     return true;
   });
 
@@ -257,6 +259,9 @@ export default function AdminApp() {
 
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-slate-400 text-sm font-bold mr-2"><Filter size={14} /> 筛选:</div>
+                    <div className="relative group">
+                      <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all uppercase" />
+                    </div>
                     <div className="relative group">
                       <select value={filterSite} onChange={e => setFilterSite(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
                         <option value="">所有工地</option>
@@ -336,6 +341,9 @@ export default function AdminApp() {
 
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 text-slate-400 text-sm font-bold mr-2"><Filter size={14} /> 筛选:</div>
+                  <div className="relative group">
+                    <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all uppercase" />
+                  </div>
                   <div className="relative group">
                     <select value={filterSite} onChange={e => setFilterSite(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
                       <option value="">所有工地</option>
