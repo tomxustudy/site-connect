@@ -212,16 +212,18 @@ export default function AdminApp() {
           <NavItem active={activeTab === 'export'} label="批量导出/归档" icon={<Download size={22} />} onClick={() => setActiveTab('export')} />
           <NavItem active={activeTab === 'settings'} label="场所与人员配置" icon={<Settings size={22} />} onClick={() => setActiveTab('settings')} />
         </nav>
-      </aside>
+      </aside >
 
       {/* 2. 主内容区 */}
-      <main className="flex-1 flex flex-col min-w-0">
+      < main className="flex-1 flex flex-col min-w-0" >
         <header className="h-24 px-10 flex items-center justify-between border-b border-slate-200 bg-white/70 backdrop-blur-xl shrink-0 z-20 sticky top-0">
           <div>
             <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">
-              {activeTab === 'inbox' ? '待核实凭证' : activeTab === 'export' ? '云端归档库' : '系统组织架构'}
+              {activeTab === 'inbox' ? '业务流水台' : activeTab === 'export' ? '云端归档库' : '系统组织架构'}
             </h2>
-            <p className="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest opacity-80">Site Connect Operator Console</p>
+            <p className="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest opacity-80">
+              {activeTab === 'inbox' ? 'Real-time Data Stream' : activeTab === 'export' ? 'Site Connect Operator Console' : 'Site Connect Operator Console'}
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => { fetchRecords(); fetchDictionaries(); }} className="p-3 text-slate-400 hover:text-blue-600 transition-colors"><RefreshCw size={24} className={loading ? "animate-spin" : ""} /></button>
@@ -399,8 +401,8 @@ export default function AdminApp() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </main >
+    </div >
   );
 }
 
