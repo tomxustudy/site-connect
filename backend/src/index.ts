@@ -45,12 +45,12 @@ async function generateBusinessId(siteName: string, recordType: string) {
         const siteCode = getSiteCode(siteName);
         const typeCode = getTypeCode(recordType);
         const prefix = `${today}-${siteCode}-${typeCode}-`;
-        
-        const res = await query("SELECT id FROM records WHERE id LIKE  ORDER BY id DESC LIMIT 1", [`${prefix}%`]);
-        
+
+        const res = await query("SELECT id FROM records WHERE id LIKE $1 ORDER BY id DESC LIMIT 1", [`${prefix}%`]);
+
         let index = 1;
         if (res.rows.length > 0) {
-            const lastId = res.rows[0].id; 
+            const lastId = res.rows[0].id;
             const parts = lastId.split('-');
             if (parts.length > 0) {
                 const lastNum = parseInt(parts[parts.length - 1]);
@@ -81,7 +81,7 @@ app.get('/api/sites', async (req: any, res: any) => {
 app.post('/api/sites', async (req: any, res: any) => {
     try {
         const { name } = req.body;
-        const result = await query("INSERT INTO sites (name) VALUES () RETURNING *", [name]);
+        const result = await query("INSERT INTO sites (name) VALUES ($1) RETURNING *", [name]);
         res.json({ success: true, data: result.rows[0] });
     } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
@@ -96,7 +96,7 @@ app.get('/api/users', async (req: any, res: any) => {
 app.post('/api/users', async (req: any, res: any) => {
     try {
         const { name, phone, authorized_sites } = req.body;
-        const result = await query("INSERT INTO users (name, phone, authorized_sites) VALUES (, , ) RETURNING *", [name, phone, authorized_sites]);
+        const result = await query("INSERT INTO users (name, phone, authorized_sites) VALUES ($1, $2, $3) RETURNING *", [name, phone, authorized_sites]);
         res.json({ success: true, data: result.rows[0] });
     } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
@@ -115,7 +115,7 @@ app.post('/api/records', async (req: any, res: any) => {
         const sql = `
             INSERT INTO records 
             (id, type, site_name, tags, description, origin_voice_text, image_url, images, amount, unit_price, status, recorder_name, server_created_at)
-            VALUES (, , , , , , , , , 0, 'pending', 1, NOW())
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending', $11, NOW())
             RETURNING *;
         `;
         const result = await query(sql, [businessId, type || 'person', site_name, tags, description, origin_voice_text, image_url, finalImages, amount || 0, unit_price || 0, recorder_name]);
@@ -139,8 +139,8 @@ app.put('/api/records/:id/status', async (req: any, res: any) => {
     try {
         const sql = `
             UPDATE records 
-            SET status = , supplier = , amount = , unit_price = , admin_note =  
-            WHERE id = 
+            SET status = $2, supplier = $3, amount = $4, unit_price = $5, admin_note = $6 
+            WHERE id = $1 
             RETURNING *;
         `;
         const result = await query(sql, [id, status, supplier, amount || 0, unit_price || 0, admin_note]);
