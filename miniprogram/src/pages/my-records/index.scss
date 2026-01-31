@@ -87,19 +87,19 @@
         &.pending {
           background: #fff7ed;
           color: #c2410c;
-          border: 1px solid #ffedd5;
+          border: 2rpx solid #ffedd5;
         }
 
         &.confirmed {
           background: #f0fdf4;
           color: #15803d;
-          border: 1px solid #dcfce7;
+          border: 2rpx solid #dcfce7;
         }
 
         &.voided {
           background: #f3f4f6;
           color: #4b5563;
-          border: 1px solid #e5e7eb;
+          border: 2rpx solid #e5e7eb;
         }
       }
 
@@ -147,7 +147,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid var(--divider);
+      border: 2rpx solid var(--divider);
 
       .records-thumb {
         width: 100%;

@@ -27,8 +27,8 @@
     background: #fff;
     padding: 10rpx 24rpx;
     border-radius: 40rpx;
-    border: 1px solid var(--divider);
-    box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
+    border: 2rpx solid var(--divider);
+    box-shadow: none;
 
     .dot-green {
       width: 14rpx;
@@ -55,7 +55,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid var(--divider);
+    border: 2rpx solid var(--divider);
     transition: transform 0.1s ease;
 
     &:active {
