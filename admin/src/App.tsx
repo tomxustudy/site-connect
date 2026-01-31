@@ -237,14 +237,7 @@ export default function AdminApp() {
           </div>
 
           <div className="flex gap-3">
-            {activeTab === 'inbox' && (
-              <button
-                onClick={() => alert("功能模拟：生成日报")}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm text-sm font-bold"
-              >
-                <Send size={16} /> 确认并发送今日日报
-              </button>
-            )}
+            <button onClick={() => { fetchRecords(); fetchDictionaries(); }} className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><RefreshCw size={20} className={loading ? "animate-spin" : ""} /></button>
           </div>
         </header>
 
@@ -252,21 +245,80 @@ export default function AdminApp() {
           {/* A. Inbox */}
           {activeTab === 'inbox' && (
             <>
-              <div className="flex-1 overflow-y-auto px-10 py-8 space-y-6">
-                <div className="flex items-center gap-4">
-                  <SelectBox value={filterSite} onChange={setFilterSite} options={dictionaries.sites} label="指定工地" />
-                  <SelectBox value={filterType} onChange={setFilterType} options={[{ name: 'person', label: '人员流水' }, { name: 'material', label: '材料流水' }]} label="流水类别" />
-                  <SelectBox value={filterUser} onChange={setFilterUser} options={dictionaries.recorders} label="现场人员" />
+              <div className="flex-1 overflow-y-auto px-10 py-8 relative">
+                {/* Toolbar */}
+                <div className="flex justify-between items-center mb-6">
+                  <button
+                    onClick={() => alert("功能模拟：生成日报")}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg shadow-green-500/20 text-sm font-bold transition-all hover:-translate-y-0.5"
+                  >
+                    <Send size={18} /> 确认并发送今日日报
+                  </button>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-slate-400 text-sm font-bold mr-2"><Filter size={14} /> 筛选:</div>
+                    <div className="relative group">
+                      <select value={filterSite} onChange={e => setFilterSite(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
+                        <option value="">所有工地</option>
+                        {dictionaries.sites.map((o: any) => <option key={o.name} value={o.name}>{o.name}</option>)}
+                      </select>
+                      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                    </div>
+                    <div className="relative group">
+                      <select value={filterType} onChange={e => setFilterType(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
+                        <option value="">所有类型</option>
+                        <option value="person">人员</option>
+                        <option value="material">材料</option>
+                      </select>
+                      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                    </div>
+                    <div className="relative group">
+                      <select value={filterUser} onChange={e => setFilterUser(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
+                        <option value="">所有记录人</option>
+                        {dictionaries.recorders.map((o: any) => <option key={o.name} value={o.name}>{o.name}</option>)}
+                      </select>
+                      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-20">
+
+                <div className="space-y-4 pb-20">
                   {filteredRecords.filter(r => r.status === 'pending').map(r => (
-                    <RecordCard key={r.id} record={r} active={selectedId === r.id} onClick={() => setSelectedId(r.id)} />
+                    <div key={r.id} onClick={() => setSelectedId(r.id)} className={`bg-white p-4 rounded-xl border transition-all cursor-pointer flex gap-5 items-start group ${selectedId === r.id ? 'border-blue-500 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500' : 'border-slate-100 hover:border-blue-300 hover:shadow-md'}`}>
+                      {/* Image Placeholder */}
+                      <div className="w-24 h-24 bg-slate-50 rounded-lg shrink-0 border border-slate-100 flex items-center justify-center overflow-hidden relative">
+                        {r.image_url ? <img src={r.image_url} className="w-full h-full object-cover" /> : <Box size={32} className="text-slate-200" />}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0 py-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`px-2 py-0.5 rounded text-[10px] text-white font-bold ${r.type === 'person' ? 'bg-blue-500' : 'bg-orange-500'}`}>{r.type === 'person' ? '人员' : '材料'}</span>
+                          <h3 className="font-bold text-slate-900 text-base">{r.tags?.[0] || '未分类记录'}</h3>
+                          <span className="text-xs text-slate-400 font-medium">| {r.site_name}</span>
+                        </div>
+                        <p className="text-slate-600 text-sm mb-3 line-clamp-1">{r.description || '无详细描述...'}</p>
+                        <div className="flex items-center gap-4 text-xs text-slate-400 font-mono">
+                          <span className="flex items-center gap-1"><Clock size={12} /> {new Date(r.server_created_at).toLocaleString()}</span>
+                          <span className="flex items-center gap-1"><User size={12} /> {r.recorder_name || '-'}</span>
+                        </div>
+                      </div>
+
+                      {/* Status/Action Indicator */}
+                      <div className="self-center pr-4">
+                        {selectedId === r.id ? <CheckCircle size={24} className="text-blue-500" /> : <div className="w-6 h-6 rounded-full border-2 border-slate-100 group-hover:border-blue-300 transition-colors"></div>}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
-              <div className={`w-[580px] bg-white border-l border-slate-100 shadow-2xl z-40 transition-all duration-500 overflow-hidden ${selectedId ? 'translate-x-0' : 'translate-x-full fixed right-0 bottom-0 top-0 pt-24'}`}>
-                {selectedRecord && <HandleUI record={selectedRecord} onClose={() => setSelectedId(null)} onAction={updateRecordStatus} />}
-              </div>
+
+              {/* Overlay Drawer */}
+              {selectedRecord && (
+                <div className="absolute top-0 right-0 w-[600px] h-full bg-white shadow-2xl z-50 border-l border-slate-100 flex flex-col animate-in slide-in-from-right duration-300">
+                  <HandleUI record={selectedRecord} onClose={() => setSelectedId(null)} onAction={updateRecordStatus} />
+                </div>
+              )}
             </>
           )}
 
