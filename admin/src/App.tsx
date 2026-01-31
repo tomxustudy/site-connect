@@ -53,7 +53,7 @@ export default function AdminApp() {
   const [loading, setLoading] = useState(false);
 
   // 设置子页签
-  const [settingsSubTab, setSettingsSubTab] = useState<'users' | 'sites'>('sites');
+  const [settingsSubTab, setSettingsSubTab] = useState<'users' | 'sites'>('users');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
 
@@ -316,42 +316,15 @@ export default function AdminApp() {
           {activeTab === 'settings' && (
             <div className="flex-1 p-10 overflow-y-auto space-y-10 flex flex-col">
               <div className="flex gap-12 border-b-2 border-slate-100 shrink-0 px-6">
-                <button onClick={() => setSettingsSubTab('sites')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>工程项目场所</button>
-                <button onClick={() => setSettingsSubTab('users')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>现场执勤人员</button>
+                <button onClick={() => setSettingsSubTab('users')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>人员名单管理</button>
+                <button onClick={() => setSettingsSubTab('sites')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>项目地点管理</button>
               </div>
 
               <div className="bg-white rounded-[40px] p-10 shadow-sm border border-slate-100 flex-1 space-y-8">
-                {settingsSubTab === 'sites' ? (
+                {settingsSubTab === 'users' ? (
                   <>
                     <div className="flex justify-between items-center">
-                      <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">工程项目清单 ({sites.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Construction Site Registry</p></div>
-                      <button onClick={async () => {
-                        const name = prompt('项目名称');
-                        if (name) {
-                          await axios.post('http://175.178.10.70:3000/api/sites', { name });
-                          fetchSites();
-                        }
-                      }} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:-translate-y-1 transition-all flex items-center gap-2"><Plus size={20} /> 创建新项目</button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {sites.map(s => (
-                        <div key={s.id} className="p-8 bg-slate-50 border border-slate-100 rounded-[32px] flex flex-col justify-between group hover:border-blue-500 transition-all">
-                          <div>
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm"><Box size={24} /></div>
-                              <button className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"><Trash2 size={20} /></button>
-                            </div>
-                            <h4 className="font-black text-slate-900 text-lg mb-1">{s.name}</h4>
-                            <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">Est. {new Date(s.created_at).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">人员准入名单 ({users.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Authorized Field Personnel</p></div>
+                      <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">人员准入名单 ({users.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Authorized Personnel</p></div>
                       <button onClick={async () => {
                         const name = prompt('姓名');
                         const phone = prompt('手机号');
@@ -364,7 +337,7 @@ export default function AdminApp() {
                     <div className="border border-slate-100 rounded-[32px] overflow-hidden">
                       <table className="w-full text-left">
                         <thead className="bg-slate-50 text-slate-400 font-black text-[10px] tracking-widest uppercase">
-                          <tr><th className="px-8 py-6">姓名</th><th className="px-8 py-6">手机号</th><th className="px-8 py-6">微信绑定</th><th className="px-8 py-6">授权范围</th><th className="px-8 py-6 text-right">管理</th></tr>
+                          <tr><th className="px-8 py-6">姓名</th><th className="px-8 py-6">联系电话</th><th className="px-8 py-6">绑定状态 (微信)</th><th className="px-8 py-6">授权项目</th><th className="px-8 py-6 text-right">管理</th></tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 text-slate-700 font-bold">
                           {users.map(u => (
@@ -382,7 +355,35 @@ export default function AdminApp() {
                       </table>
                     </div>
                   </>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">项目地点库 ({sites.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Project Sites</p></div>
+                      <button onClick={async () => {
+                        const name = prompt('项目名称');
+                        if (name) {
+                          await axios.post('http://175.178.10.70:3000/api/sites', { name });
+                          fetchSites();
+                        }
+                      }} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:-translate-y-1 transition-all flex items-center gap-2"><Plus size={20} /> 创建新项目</button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sites.map(s => (
+                        <div key={s.id} className="p-8 bg-slate-50 border border-slate-100 rounded-[32px] flex flex-col justify-between group hover:border-blue-500 transition-all">
+                          <div>
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm"><Box size={24} /></div>
+                              <button className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"><Trash2 size={20} /></button>
+                            </div>
+                            <h4 className="font-black text-slate-900 text-lg mb-1">{s.name}</h4>
+                            <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">Create {new Date(s.created_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
+
               </div>
             </div>
           )}
