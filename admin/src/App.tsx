@@ -137,7 +137,7 @@ export default function AdminApp() {
         '流水号ID': r.id,
         '记录类型': r.type === 'material' ? '材料' : '人员',
         '项目工地': r.site_name,
-        '业务标签': r.tags.join(','),
+        '业务标签': (r.tags || []).join(','),
         '现场描述': r.description,
         '结算金额': r.amount,
         '结算单价': r.unit_price,
@@ -297,7 +297,7 @@ export default function AdminApp() {
                           <td className="px-8 py-5 font-mono text-xs text-slate-400">{index + 1}</td>
                           <td className="px-8 py-5 font-mono text-[11px] font-black text-slate-400 group-hover:text-blue-600 transition-colors uppercase tracking-tight whitespace-nowrap">{r.id}</td>
                           <td className="px-8 py-5 text-slate-900 text-center">{r.recorder_name || '-'}</td>
-                          <td className="px-8 py-5 flex items-center gap-2"><span className="px-2 py-0.5 bg-slate-100 text-[10px] rounded leading-none">{r.type === 'material' ? '材' : '人'}</span> {r.tags[0]}</td>
+                          <td className="px-8 py-5 flex items-center gap-2"><span className="px-2 py-0.5 bg-slate-100 text-[10px] rounded leading-none">{r.type === 'material' ? '材' : '人'}</span> {r.tags?.[0] || '-'}</td>
                           <td className="px-8 py-5">
                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${r.status === 'confirmed' ? 'bg-green-100 text-green-600' : r.status === 'voided' ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-orange-600'}`}>
                               {r.status === 'confirmed' ? '已归档' : r.status === 'voided' ? '已作废' : '待处理'}
