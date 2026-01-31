@@ -114,7 +114,8 @@ export default function RecordPage() {
         site_name: recordData.siteName,
         tags: recordData.tags,
         description: recordData.description,
-        image_url: uploadedUrls[0] || '', // 目前数据库结构支持单图，取第一张
+        image_url: uploadedUrls[0] || '', // 兼容旧字段
+        images: uploadedUrls,           // 新增：完整多图数组
         origin_voice_text: '', // 预留语音原始文本
         amount: 0,
         unit_price: 0

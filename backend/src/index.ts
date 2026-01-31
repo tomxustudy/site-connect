@@ -23,33 +23,82 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-async function generateBusinessId() {
+function getSiteCode(name: string) {
+    if (name.includes('万科')) return 'WK';
+    if (name.includes('碧桂园')) return 'BGY';
+    if (name.includes('恒大')) return 'HD';
+    if (name.includes('保利')) return 'BL';
+    if (name.includes('华润')) return 'HR';
+    return 'XM' + (name.charCodeAt(0) % 99);
+}
+
+function getTypeCode(type: string) {
+    if (type === 'material') return 'MAT';
+    if (type === 'person') return 'PER';
+    if (type === 'expense') return 'EXP';
+    return 'OTH';
+}
+
+async function generateBusinessId(siteName: string, recordType: string) {
     try {
         const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-        const prefix = `REC-${today}-`;
+        const siteCode = getSiteCode(siteName);
+        const typeCode = getTypeCode(recordType);
+        const prefix = `${today}-${siteCode}-${typeCode}-`;
+        
         const res = await query("SELECT id FROM records WHERE id LIKE  ORDER BY id DESC LIMIT 1", [`${prefix}%`]);
+        
         let index = 1;
         if (res.rows.length > 0) {
-            const lastId = res.rows[0].id;
+            const lastId = res.rows[0].id; 
             const parts = lastId.split('-');
-            if (parts.length >= 3) {
-                index = parseInt(parts[2]) + 1;
+            if (parts.length > 0) {
+                const lastNum = parseInt(parts[parts.length - 1]);
             }
         }
         return `${prefix}${String(index).padStart(3, '0')}`;
     } catch (e) {
-        return `REC-${Date.now()}`;
+        console.error('ID Gen Error', e);
+        return `FATAL-${Date.now()}`;
     }
 }
 
 app.get('/api/dictionaries', async (req: any, res: any) => {
     try {
-        const sites = await query("SELECT DISTINCT site_name FROM records");
-        const recorders = await query("SELECT DISTINCT recorder_name FROM records");
-        res.json({ success: true, sites: sites.rows.map((r: any) => ({name: r.site_name})), recorders: recorders.rows.map((r: any) => ({name: r.recorder_name})) });
-    } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
-    }
+        const sites = await query("SELECT name FROM sites ORDER BY name ASC");
+        const recorders = await query("SELECT name FROM users ORDER BY name ASC");
+        res.json({ success: true, sites: sites.rows, recorders: recorders.rows });
+    } catch (err: any) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+app.get('/api/sites', async (req: any, res: any) => {
+    try {
+        const resData = await query("SELECT * FROM sites ORDER BY created_at DESC");
+        res.json({ success: true, data: resData.rows });
+    } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/sites', async (req: any, res: any) => {
+    try {
+        const { name } = req.body;
+        const result = await query("INSERT INTO sites (name) VALUES () RETURNING *", [name]);
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/users', async (req: any, res: any) => {
+    try {
+        const resData = await query("SELECT * FROM users ORDER BY created_at DESC");
+        res.json({ success: true, data: resData.rows });
+    } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/users', async (req: any, res: any) => {
+    try {
+        const { name, phone, authorized_sites } = req.body;
+        const result = await query("INSERT INTO users (name, phone, authorized_sites) VALUES (, , ) RETURNING *", [name, phone, authorized_sites]);
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/upload', upload.single('photo'), (req: any, res: any) => {
@@ -58,17 +107,21 @@ app.post('/api/upload', upload.single('photo'), (req: any, res: any) => {
 
 app.post('/api/records', async (req: any, res: any) => {
     try {
-        const { type, site_name, tags, description, origin_voice_text, image_url, amount, unit_price, recorder_name } = req.body;
-        const businessId = await generateBusinessId();
+        const { type, site_name, tags, description, origin_voice_text, image_url, images, amount, unit_price, recorder_name } = req.body;
+        const businessId = await generateBusinessId(site_name, type);
+
+        let finalImages = images;
+
         const sql = `
             INSERT INTO records 
-            (id, type, site_name, tags, description, origin_voice_text, image_url, amount, unit_price, status, recorder_name, server_created_at)
-            VALUES (, , , , , , , , , 'pending', 0, NOW())
+            (id, type, site_name, tags, description, origin_voice_text, image_url, images, amount, unit_price, status, recorder_name, server_created_at)
+            VALUES (, , , , , , , , , 0, 'pending', 1, NOW())
             RETURNING *;
         `;
-        const result = await query(sql, [businessId, type || 'person', site_name, tags, description, origin_voice_text, image_url, amount || 0, unit_price || 0, recorder_name]);
+        const result = await query(sql, [businessId, type || 'person', site_name, tags, description, origin_voice_text, image_url, finalImages, amount || 0, unit_price || 0, recorder_name]);
         res.json({ success: true, data: result.rows[0] });
     } catch (err: any) {
+        console.error('Insert error:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -77,9 +130,7 @@ app.get('/api/records', async (req: any, res: any) => {
     try {
         const result = await query("SELECT * FROM records ORDER BY server_created_at DESC");
         res.json({ success: true, data: result.rows });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/records/:id/status', async (req: any, res: any) => {
@@ -94,9 +145,7 @@ app.put('/api/records/:id/status', async (req: any, res: any) => {
         `;
         const result = await query(sql, [id, status, supplier, amount || 0, unit_price || 0, admin_note]);
         res.json({ success: true, data: result.rows[0] });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

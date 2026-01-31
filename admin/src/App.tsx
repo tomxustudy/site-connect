@@ -3,7 +3,7 @@ import {
   LayoutGrid, Download, Settings,
   Search, Filter, ChevronRight,
   Clock, User, CheckCircle, XCircle,
-  FileText, Send, AlertCircle, RefreshCw, Box, Plus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, Link2
+  FileText, Send, AlertCircle, RefreshCw, Box, Plus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, Link2, ChevronLeft, CheckSquare, Square
 } from 'lucide-react';
 import axios from 'axios';
 import JSZip from 'jszip';
@@ -20,6 +20,7 @@ interface SiteRecord {
   tags: string[];
   description: string;
   image_url: string;
+  images?: string[]; // 新增：多图数组
   server_created_at: string;
   status: RecordStatus;
   recorder_name?: string;
@@ -52,7 +53,7 @@ export default function AdminApp() {
   const [loading, setLoading] = useState(false);
 
   // 设置子页签
-  const [settingsSubTab, setSettingsSubTab] = useState<'users' | 'sites'>('users');
+  const [settingsSubTab, setSettingsSubTab] = useState<'users' | 'sites'>('sites');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
 
@@ -60,6 +61,9 @@ export default function AdminApp() {
   const [filterSite, setFilterSite] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterUser, setFilterUser] = useState('');
+
+  // 多选状态
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchRecords();
@@ -108,20 +112,27 @@ export default function AdminApp() {
     } catch (err) { alert('操作失败'); }
   };
 
-  // --- 导出逻辑 ---
+  // --- 导出逻辑 (Excel + Zip 图片) ---
   const handleExportZip = async () => {
-    const selectedRecords = records.filter(r => {
+    // 1. 确定要导出的数据 (如果有多选则优先用多选，否则用当前筛选结果)
+    let selectedRecords = records.filter(r => {
       if (filterSite && r.site_name !== filterSite) return false;
       if (filterType && r.type !== filterType) return false;
       if (filterUser && r.recorder_name !== filterUser) return false;
       return true;
     });
 
+    if (selectedIds.size > 0) {
+      selectedRecords = selectedRecords.filter(r => selectedIds.has(r.id));
+    }
+
     if (selectedRecords.length === 0) return alert('没有可导出的数据');
 
     setLoading(true);
     try {
       const zip = new JSZip();
+
+      // 1. 生成 Excel
       const worksheet = XLSX.utils.json_to_sheet(selectedRecords.map(r => ({
         '流水号ID': r.id,
         '记录类型': r.type === 'material' ? '材料' : '人员',
@@ -140,22 +151,38 @@ export default function AdminApp() {
       const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
       zip.file("工地通业务导出清单.xlsx", excelBuffer);
 
+      // 2. 打包照片 (支持单记录多张图)
       const imgFolder = zip.folder("现场原始照片");
-      const downloadPromises = selectedRecords
-        .filter(r => r.image_url)
-        .map(async (r) => {
-          try {
-            const response = await axios.get(r.image_url, { responseType: 'blob' });
-            const extension = r.image_url.split('.').pop() || 'jpg';
-            if (imgFolder) imgFolder.file(`${r.id}.${extension}`, response.data);
-          } catch (e) { console.error(`Photo failed: ${r.id}`); }
-        });
+      const downloadTasks: Promise<void>[] = [];
 
-      await Promise.all(downloadPromises);
+      selectedRecords.forEach(r => {
+        // 兼容新旧数据：既看 images 数组，也看 image_url
+        const imgs = r.images && r.images.length > 0 ? r.images : (r.image_url ? [r.image_url] : []);
+
+        imgs.forEach((url, idx) => {
+          downloadTasks.push((async () => {
+            try {
+              const response = await axios.get(url, { responseType: 'blob' });
+              const extension = url.split('.').pop() || 'jpg';
+              if (imgFolder) {
+                // 命名规则: 流水号_序号.jpg (如 20260131-WK-MAT-001_1.jpg)
+                imgFolder.file(`${r.id}_${idx + 1}.${extension}`, response.data);
+              }
+            } catch (e) { console.error(`Photo failed: ${r.id}`, e); }
+          })());
+        });
+      });
+
+      await Promise.all(downloadTasks);
+
+      // 3. 构建 Zip 并下载
       const content = await zip.generateAsync({ type: "blob" });
-      saveAs(content, `工地通导出包_${new Date().toISOString().slice(0, 10)}.zip`);
-    } catch (err) { alert('导出失败'); }
-    finally { setLoading(false); }
+      saveAs(content, `工地通导出包_${selectedIds.size > 0 ? 'Selection' : 'Batch'}_${new Date().toISOString().slice(0, 10)}.zip`);
+    } catch (err) {
+      alert('导出 Zip 失败，请检查网络');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filteredRecords = records.filter(r => {
@@ -230,29 +257,46 @@ export default function AdminApp() {
                 <div className="flex justify-between items-end">
                   <div className="space-y-1">
                     <h3 className="text-2xl font-black text-slate-900 tracking-tighter">流水数据中心</h3>
-                    <p className="text-slate-400 text-sm font-bold opacity-60">筛选共计 {filteredRecords.length} 项记录</p>
+                    <p className="text-slate-400 text-sm font-bold opacity-60">
+                      {selectedIds.size > 0 ? <span className="text-blue-600">已手动选中 {selectedIds.size} 项</span> : `筛选共计 ${filteredRecords.length} 项记录`}
+                    </p>
                   </div>
                   <button onClick={handleExportZip} className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl font-black flex items-center gap-3">
-                    <Download size={22} /> 打包导出 ZIP (Excel+照片)
+                    <Download size={22} /> {selectedIds.size > 0 ? '导出选中的项' : '打包导出全部'}
                   </button>
                 </div>
                 <div className="border border-slate-100 rounded-[32px] overflow-hidden">
                   <table className="w-full text-left text-sm border-collapse">
                     <thead className="bg-[#F8FAFC] text-slate-400 font-black uppercase text-[10px] tracking-widest">
                       <tr>
-                        <th className="px-8 py-6">流水ID</th>
-                        <th className="px-8 py-6">记录人</th>
-                        <th className="px-8 py-6">所属工地</th>
+                        <th className="px-8 py-6 w-16 text-center">
+                          <button onClick={() => selectedIds.size === filteredRecords.length ? setSelectedIds(new Set()) : setSelectedIds(new Set(filteredRecords.map(r => r.id)))} className="text-slate-400 hover:text-blue-600">
+                            {selectedIds.size > 0 && selectedIds.size === filteredRecords.length ? <CheckSquare size={20} className="text-blue-600" /> : <Square size={20} />}
+                          </button>
+                        </th>
+                        <th className="px-8 py-6 w-24">#</th>
+                        <th className="px-8 py-6 whitespace-nowrap">业务流水号 (审计专用)</th>
+                        <th className="px-8 py-6 w-32 text-center">记录人</th>
                         <th className="px-8 py-6">摘要信息</th>
                         <th className="px-8 py-6">审核状态</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50 text-slate-700 font-bold">
-                      {filteredRecords.map(r => (
-                        <tr key={r.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-8 py-5 font-mono text-xs">{r.id}</td>
-                          <td className="px-8 py-5 text-slate-900">{r.recorder_name || '-'}</td>
-                          <td className="px-8 py-5 text-slate-500">{r.site_name}</td>
+                      {filteredRecords.map((r, index) => (
+                        <tr key={r.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(r.id) ? 'bg-blue-50/50' : ''}`}>
+                          <td className="px-8 py-5 text-center">
+                            <button onClick={() => {
+                              const newSet = new Set(selectedIds);
+                              if (newSet.has(r.id)) newSet.delete(r.id);
+                              else newSet.add(r.id);
+                              setSelectedIds(newSet);
+                            }} className="text-slate-300 hover:text-blue-600">
+                              {selectedIds.has(r.id) ? <CheckSquare size={20} className="text-blue-600" /> : <Square size={20} />}
+                            </button>
+                          </td>
+                          <td className="px-8 py-5 font-mono text-xs text-slate-400">{index + 1}</td>
+                          <td className="px-8 py-5 font-mono text-[11px] font-black text-slate-400 group-hover:text-blue-600 transition-colors uppercase tracking-tight whitespace-nowrap">{r.id}</td>
+                          <td className="px-8 py-5 text-slate-900 text-center">{r.recorder_name || '-'}</td>
                           <td className="px-8 py-5 flex items-center gap-2"><span className="px-2 py-0.5 bg-slate-100 text-[10px] rounded leading-none">{r.type === 'material' ? '材' : '人'}</span> {r.tags[0]}</td>
                           <td className="px-8 py-5">
                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${r.status === 'confirmed' ? 'bg-green-100 text-green-600' : r.status === 'voided' ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-orange-600'}`}>
@@ -272,12 +316,39 @@ export default function AdminApp() {
           {activeTab === 'settings' && (
             <div className="flex-1 p-10 overflow-y-auto space-y-10 flex flex-col">
               <div className="flex gap-12 border-b-2 border-slate-100 shrink-0 px-6">
-                <button onClick={() => setSettingsSubTab('users')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>现场执勤人员</button>
                 <button onClick={() => setSettingsSubTab('sites')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>工程项目场所</button>
+                <button onClick={() => setSettingsSubTab('users')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>现场执勤人员</button>
               </div>
 
               <div className="bg-white rounded-[40px] p-10 shadow-sm border border-slate-100 flex-1 space-y-8">
-                {settingsSubTab === 'users' ? (
+                {settingsSubTab === 'sites' ? (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">工程项目清单 ({sites.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Construction Site Registry</p></div>
+                      <button onClick={async () => {
+                        const name = prompt('项目名称');
+                        if (name) {
+                          await axios.post('http://175.178.10.70:3000/api/sites', { name });
+                          fetchSites();
+                        }
+                      }} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:-translate-y-1 transition-all flex items-center gap-2"><Plus size={20} /> 创建新项目</button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sites.map(s => (
+                        <div key={s.id} className="p-8 bg-slate-50 border border-slate-100 rounded-[32px] flex flex-col justify-between group hover:border-blue-500 transition-all">
+                          <div>
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm"><Box size={24} /></div>
+                              <button className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"><Trash2 size={20} /></button>
+                            </div>
+                            <h4 className="font-black text-slate-900 text-lg mb-1">{s.name}</h4>
+                            <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">Est. {new Date(s.created_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
                   <>
                     <div className="flex justify-between items-center">
                       <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">人员准入名单 ({users.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Authorized Field Personnel</p></div>
@@ -309,33 +380,6 @@ export default function AdminApp() {
                           ))}
                         </tbody>
                       </table>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">工程项目清单 ({sites.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Construction Site Registry</p></div>
-                      <button onClick={async () => {
-                        const name = prompt('项目名称');
-                        if (name) {
-                          await axios.post('http://175.178.10.70:3000/api/sites', { name });
-                          fetchSites();
-                        }
-                      }} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:-translate-y-1 transition-all flex items-center gap-2"><Plus size={20} /> 创建新项目</button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {sites.map(s => (
-                        <div key={s.id} className="p-8 bg-slate-50 border border-slate-100 rounded-[32px] flex flex-col justify-between group hover:border-blue-500 transition-all">
-                          <div>
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm"><Box size={24} /></div>
-                              <button className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"><Trash2 size={20} /></button>
-                            </div>
-                            <h4 className="font-black text-slate-900 text-lg mb-1">{s.name}</h4>
-                            <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">Est. {new Date(s.created_at).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      ))}
                     </div>
                   </>
                 )}
@@ -404,8 +448,8 @@ function HandleUI({ record, onClose, onAction }: any) {
       </div>
       <div className="flex-1 overflow-y-auto p-12 space-y-12 pb-32">
         <section className="space-y-6">
-          <div className="aspect-[4/3] bg-slate-50 rounded-[48px] overflow-hidden border border-slate-100 shadow-2xl flex items-center justify-center group">
-            {record.image_url ? <img src={record.image_url} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700" /> : <Box size={100} className="text-slate-200 opacity-20" />}
+          <div className="aspect-[4/3] bg-slate-50 rounded-[48px] overflow-hidden border border-slate-100 shadow-2xl flex items-center justify-center group relative">
+            <ImageCarousel images={record.images && record.images.length > 0 ? record.images : (record.image_url ? [record.image_url] : [])} />
           </div>
           <div className="p-8 bg-blue-50/30 rounded-[32px] border border-blue-50 text-slate-700 font-medium italic relative">
             <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500/20"></div>
@@ -423,6 +467,39 @@ function HandleUI({ record, onClose, onAction }: any) {
         <button onClick={() => onAction(record.id, 'voided')} className="flex-1 py-6 bg-white text-red-500 font-black rounded-3xl shadow-sm border-2 border-slate-200 hover:bg-red-50 transition-all uppercase tracking-widest text-[12px]">驳回归档</button>
         <button onClick={() => onAction(record.id, 'confirmed', formData)} className="flex-2 py-6 bg-blue-600 text-white font-black rounded-3xl shadow-2xl shadow-blue-500/30 hover:bg-blue-700 hover:-translate-y-1 transition-all uppercase tracking-widest text-[12px]">通过并写入云端</button>
       </div>
+    </div>
+  );
+}
+
+function ImageCarousel({ images }: { images: string[] }) {
+  const [idx, setIdx] = useState(0);
+
+  if (!images || images.length === 0) return <Box size={100} className="text-slate-200 opacity-20" />;
+
+  const prev = (e: any) => { e.stopPropagation(); setIdx(i => i > 0 ? i - 1 : images.length - 1); };
+  const next = (e: any) => { e.stopPropagation(); setIdx(i => i < images.length - 1 ? i + 1 : 0); };
+
+  return (
+    <div className="relative w-full h-full group">
+      <img src={images[idx]} className="w-full h-full object-cover transition-all duration-500" />
+
+      {/* 轮播指示器 */}
+      {images.length > 1 && (
+        <>
+          <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={prev} className="p-3 bg-white/80 backdrop-blur rounded-full shadow-lg text-slate-700 hover:bg-white hover:scale-110 transition-all"><ChevronLeft size={24} /></button>
+            <button onClick={next} className="p-3 bg-white/80 backdrop-blur rounded-full shadow-lg text-slate-700 hover:bg-white hover:scale-110 transition-all"><ChevronRight size={24} /></button>
+          </div>
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+            {images.map((_, i) => (
+              <div key={i} className={`w-2 h-2 rounded-full transition-all ${i === idx ? 'bg-white w-6' : 'bg-white/50'}`} />
+            ))}
+          </div>
+          <div className="absolute top-6 right-6 px-3 py-1 bg-black/50 backdrop-blur rounded-full text-white text-[10px] font-black uppercase tracking-widest">
+            {idx + 1} / {images.length}
+          </div>
+        </>
+      )}
     </div>
   );
 }
