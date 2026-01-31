@@ -273,38 +273,64 @@ export default function AdminApp() {
           {/* B. Export */}
           {activeTab === 'export' && (
             <div className="flex-1 p-10 overflow-y-auto">
-              <div className="bg-white rounded-[40px] shadow-sm border border-slate-100 p-10 space-y-10 min-h-full">
-                <div className="flex justify-between items-end">
-                  <div className="space-y-1">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter">流水数据中心</h3>
-                    <p className="text-slate-400 text-sm font-bold opacity-60">
-                      {selectedIds.size > 0 ? <span className="text-blue-600">已手动选中 {selectedIds.size} 项</span> : `筛选共计 ${filteredRecords.length} 项记录`}
-                    </p>
+              <div className="bg-white rounded-[40px] shadow-sm border border-slate-100 p-10 min-h-full flex flex-col">
+                {/* Toolbar */}
+                <div className="flex justify-between items-center mb-8">
+                  <div className="flex items-center gap-6">
+                    <button onClick={handleExportZip} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-blue-500/20 text-sm transition-all hover:-translate-y-0.5">
+                      <Download size={18} /> 批量导出 (Excel + 照片)
+                    </button>
+                    <span className="text-slate-400 text-sm font-bold">已选择: <span className="text-slate-900">{selectedIds.size}</span> 项</span>
                   </div>
-                  <button onClick={handleExportZip} className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl font-black flex items-center gap-3">
-                    <Download size={22} /> {selectedIds.size > 0 ? '导出选中的项' : '打包导出全部'}
-                  </button>
+
+                  <div className="flex gap-3">
+                    <div className="relative group">
+                      <select value={filterSite} onChange={e => setFilterSite(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2.5 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
+                        <option value="">所有工地</option>
+                        {dictionaries.sites.map((o: any) => <option key={o.name} value={o.name}>{o.name}</option>)}
+                      </select>
+                      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                    </div>
+                    <div className="relative group">
+                      <select value={filterType} onChange={e => setFilterType(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2.5 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
+                        <option value="">所有类型</option>
+                        <option value="person">人员</option>
+                        <option value="material">材料</option>
+                      </select>
+                      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                    </div>
+                    <div className="relative group">
+                      <select value={filterUser} onChange={e => setFilterUser(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2.5 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
+                        <option value="">所有记录人</option>
+                        {dictionaries.recorders.map((o: any) => <option key={o.name} value={o.name}>{o.name}</option>)}
+                      </select>
+                      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                    </div>
+                  </div>
                 </div>
-                <div className="border border-slate-100 rounded-[32px] overflow-hidden">
-                  <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-[#F8FAFC] text-slate-400 font-black uppercase text-[10px] tracking-widest">
+
+                {/* Table */}
+                <div className="border border-slate-100 rounded-2xl overflow-hidden flex-1">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-[#F8FAFC]">
                       <tr>
-                        <th className="px-8 py-6 w-16 text-center">
+                        <th className="p-6 w-16 text-center">
                           <button onClick={() => selectedIds.size === filteredRecords.length ? setSelectedIds(new Set()) : setSelectedIds(new Set(filteredRecords.map(r => r.id)))} className="text-slate-400 hover:text-blue-600">
                             {selectedIds.size > 0 && selectedIds.size === filteredRecords.length ? <CheckSquare size={20} className="text-blue-600" /> : <Square size={20} />}
                           </button>
                         </th>
-                        <th className="px-8 py-6 w-24">#</th>
-                        <th className="px-8 py-6 whitespace-nowrap">业务流水号 (审计专用)</th>
-                        <th className="px-8 py-6 w-32 text-center">记录人</th>
-                        <th className="px-8 py-6">摘要信息</th>
-                        <th className="px-8 py-6">审核状态</th>
+                        <th className="p-6 font-bold text-slate-600 text-xs text-center">流水号ID</th>
+                        <th className="p-6 font-bold text-slate-600 text-xs text-center w-24">记录人</th>
+                        <th className="p-6 font-bold text-slate-600 text-xs w-48">类型/工地</th>
+                        <th className="p-6 font-bold text-slate-600 text-xs px-0">详情摘要</th>
+                        <th className="p-6 font-bold text-slate-600 text-xs w-32">时间</th>
+                        <th className="p-6 font-bold text-slate-600 text-xs text-center w-24">状态</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50 text-slate-700 font-bold">
+                    <tbody className="divide-y divide-slate-50 text-slate-700">
                       {filteredRecords.map((r, index) => (
                         <tr key={r.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(r.id) ? 'bg-blue-50/50' : ''}`}>
-                          <td className="px-8 py-5 text-center">
+                          <td className="p-6 text-center">
                             <button onClick={() => {
                               const newSet = new Set(selectedIds);
                               if (newSet.has(r.id)) newSet.delete(r.id);
@@ -314,134 +340,159 @@ export default function AdminApp() {
                               {selectedIds.has(r.id) ? <CheckSquare size={20} className="text-blue-600" /> : <Square size={20} />}
                             </button>
                           </td>
-                          <td className="px-8 py-5 font-mono text-xs text-slate-400">{index + 1}</td>
-                          <td className="px-8 py-5 font-mono text-[11px] font-black text-slate-400 group-hover:text-blue-600 transition-colors uppercase tracking-tight whitespace-nowrap">{r.id}</td>
-                          <td className="px-8 py-5 text-slate-900 text-center">{r.recorder_name || '-'}</td>
-                          <td className="px-8 py-5 flex items-center gap-2"><span className="px-2 py-0.5 bg-slate-100 text-[10px] rounded leading-none">{r.type === 'material' ? '材' : '人'}</span> {r.tags?.[0] || '-'}</td>
-                          <td className="px-8 py-5">
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${r.status === 'confirmed' ? 'bg-green-100 text-green-600' : r.status === 'voided' ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-orange-600'}`}>
-                              {r.status === 'confirmed' ? '已归档' : r.status === 'voided' ? '已作废' : '待处理'}
-                            </span>
+                          <td className="p-6 group cursor-pointer text-center" onClick={() => setSelectedId(r.id)}>
+                            <div className="font-mono text-xs text-slate-400 group-hover:text-blue-600 transition-colors uppercase">{r.id.split('-')[0]}-</div>
+                            <div className="font-mono text-xs text-slate-500 font-bold group-hover:text-blue-600 transition-colors uppercase">{r.id.split('-').slice(1).join('-')}</div>
+                          </td>
+                          <td className="p-6 text-center font-bold">{r.recorder_name || '-'}</td>
+                          <td className="p-6">
+                            <div className="flex gap-2 items-center flex-wrap">
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] text-white font-bold ${(r.type === 'person' ? 'bg-blue-500' : r.type === 'expense' ? 'bg-green-500' : 'bg-orange-500')}`}>
+                                {r.type === 'person' ? '人员' : r.type === 'expense' ? '费用' : '材料'}
+                              </span>
+                              <span className="text-xs font-bold text-slate-500">{r.site_name}</span>
+                            </div>
+                          </td>
+                          <td className="p-6 px-0 max-w-sm">
+                            <div className="flex gap-2 items-center">
+                              <span className="font-black text-slate-800 text-sm whitespace-nowrap">{r.tags?.[0]}</span>
+                              <span className="text-slate-500 text-xs line-clamp-1">{r.description}</span>
+                            </div>
+                          </td>
+                          <td className="p-6">
+                            <div className="text-xs text-slate-500 font-mono scale-90 origin-left">{new Date(r.server_created_at).toLocaleDateString()}</div>
+                            <div className="text-xs text-slate-400 font-mono scale-90 origin-left">{new Date(r.server_created_at).toLocaleTimeString()}</div>
+                          </td>
+                          <td className="p-6 text-center">
+                            {r.status === 'confirmed' ? (
+                              <div className="mx-auto text-green-600 text-[10px] font-black leading-tight bg-green-50 rounded p-1 w-8">已<br />归档</div>
+                            ) : r.status === 'voided' ? (
+                              <div className="mx-auto text-red-300 text-[10px] font-black leading-tight bg-red-50 rounded p-1 opacity-50 w-8">已<br />作废</div>
+                            ) : (
+                              <div className="mx-auto text-orange-500 text-[10px] font-black leading-tight bg-orange-50 rounded p-1 w-8">待<br />处理</div>
+                            )}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  {filteredRecords.length === 0 && <div className="p-10 text-center text-slate-300">暂无数据</div>}
                 </div>
               </div>
             </div>
           )}
-
           {/* C. Settings */}
-          {activeTab === 'settings' && (
-            <div className="flex-1 p-10 overflow-y-auto space-y-10 flex flex-col">
-              <div className="flex gap-12 border-b-2 border-slate-100 shrink-0 px-6">
-                <button onClick={() => setSettingsSubTab('users')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>人员管理</button>
-                <button onClick={() => setSettingsSubTab('sites')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>工地管理</button>
-              </div>
+          {
+            activeTab === 'settings' && (
+              <div className="flex-1 p-10 overflow-y-auto space-y-10 flex flex-col">
+                <div className="flex gap-12 border-b-2 border-slate-100 shrink-0 px-6">
+                  <button onClick={() => setSettingsSubTab('users')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>人员管理</button>
+                  <button onClick={() => setSettingsSubTab('sites')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>工地管理</button>
+                </div>
 
-              <div className="bg-white rounded-[40px] p-10 shadow-sm border border-slate-100 flex-1 space-y-8">
-                {settingsSubTab === 'users' ? (
-                  <>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
-                      <div className="text-blue-500 mt-1"><MessageCircle size={18} /></div>
-                      <div className="text-sm text-blue-800">
-                        <p className="font-bold mb-1">关于人员授权与微信号：</p>
-                        <p>现场人员在首次登录小程序时，需授权获取手机号。系统将自动匹配下方列表中的手机号进行身份验证，并自动获取其微信号（OpenID）用于后续的身份核验。</p>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="font-bold text-lg text-slate-900">现场人员列表 ({users.length})</h3>
-                      <button onClick={async () => {
-                        const name = prompt('姓名');
-                        const phone = prompt('手机号');
-                        if (name && phone) {
-                          await axios.post('http://175.178.10.70:3000/api/users', { name, phone, authorized_sites: [] });
-                          fetchUsers();
-                        }
-                      }} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-sm transition-all text-sm font-bold"><Plus size={16} /> 新增人员</button>
-                    </div>
-
-                    <div className="border border-slate-100 rounded-lg overflow-hidden">
-                      <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b">
-                          <tr>
-                            <th className="p-4 font-bold text-gray-600 text-sm">姓名</th>
-                            <th className="p-4 font-bold text-gray-600 text-sm">手机号 (登录凭证)</th>
-                            <th className="p-4 font-bold text-gray-600 text-sm">微信号 (自动绑定)</th>
-                            <th className="p-4 font-bold text-gray-600 text-sm">授权工地</th>
-                            <th className="p-4 font-bold text-gray-600 text-sm text-right">操作</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {users.map(u => (
-                            <tr key={u.id} className="hover:bg-gray-50/80 transition-colors">
-                              <td className="p-4 font-bold text-gray-900">{u.name}</td>
-                              <td className="p-4 text-gray-600 font-mono text-sm flex items-center gap-2"><Phone size={14} className="text-gray-400" /> {u.phone}</td>
-                              <td className="p-4">
-                                {u.openid ? (
-                                  <span className="text-green-600 text-xs bg-green-50 px-2 py-1 rounded flex items-center gap-1 w-fit border border-green-100">
-                                    <CheckCircle size={10} /> 已绑定 ({u.openid.slice(0, 8)}...)
-                                  </span>
-                                ) : (
-                                  <span className="text-orange-400 text-xs bg-orange-50 px-2 py-1 rounded w-fit border border-orange-100 opacity-80">
-                                    待首次登录
-                                  </span>
-                                )}
-                              </td>
-                              <td className="p-4 flex gap-1 flex-wrap">
-                                {u.authorized_sites.map(s => (
-                                  <span key={s} className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 border border-gray-200">{s}</span>
-                                ))}
-                              </td>
-                              <td className="p-4 text-right space-x-3 text-sm">
-                                <button className="text-blue-600 hover:text-blue-800 hover:underline">编辑</button>
-                                <button className="text-red-500 hover:text-red-700 hover:underline">删除</button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-gray-500 text-sm mb-4">管理所有的在建项目，删除项目将隐藏其相关数据。</p>
-                    <div className="space-y-3">
-                      {sites.map(s => (
-                        <div key={s.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-all shadow-sm">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-100">
-                              <MapPin size={20} />
-                            </div>
-                            <span className="font-bold text-gray-800 text-lg">{s.name}</span>
-                          </div>
-                          <div className="flex gap-4 pr-2">
-                            <button className="text-gray-400 hover:text-blue-600 transition-colors"><Edit size={18} /></button>
-                            <button className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
-                          </div>
+                <div className="bg-white rounded-[40px] p-10 shadow-sm border border-slate-100 flex-1 space-y-8">
+                  {settingsSubTab === 'users' ? (
+                    <>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+                        <div className="text-blue-500 mt-1"><MessageCircle size={18} /></div>
+                        <div className="text-sm text-blue-800">
+                          <p className="font-bold mb-1">关于人员授权与微信号：</p>
+                          <p>现场人员在首次登录小程序时，需授权获取手机号。系统将自动匹配下方列表中的手机号进行身份验证，并自动获取其微信号（OpenID）用于后续的身份核验。</p>
                         </div>
-                      ))}
-                    </div>
-                    <div className="mt-6 flex justify-end">
-                      <button onClick={async () => {
-                        const name = prompt('项目名称');
-                        if (name) {
-                          await axios.post('http://175.178.10.70:3000/api/sites', { name });
-                          fetchSites();
-                        }
-                      }} className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all font-bold text-sm"><Plus size={16} /> 新增工地</button>
-                    </div>
-                  </>
-                )}
+                      </div>
 
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-lg text-slate-900">现场人员列表 ({users.length})</h3>
+                        <button onClick={async () => {
+                          const name = prompt('姓名');
+                          const phone = prompt('手机号');
+                          if (name && phone) {
+                            await axios.post('http://175.178.10.70:3000/api/users', { name, phone, authorized_sites: [] });
+                            fetchUsers();
+                          }
+                        }} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-sm transition-all text-sm font-bold"><Plus size={16} /> 新增人员</button>
+                      </div>
+
+                      <div className="border border-slate-100 rounded-lg overflow-hidden">
+                        <table className="w-full text-left">
+                          <thead className="bg-gray-50 border-b">
+                            <tr>
+                              <th className="p-4 font-bold text-gray-600 text-sm">姓名</th>
+                              <th className="p-4 font-bold text-gray-600 text-sm">手机号 (登录凭证)</th>
+                              <th className="p-4 font-bold text-gray-600 text-sm">微信号 (自动绑定)</th>
+                              <th className="p-4 font-bold text-gray-600 text-sm">授权工地</th>
+                              <th className="p-4 font-bold text-gray-600 text-sm text-right">操作</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {users.map(u => (
+                              <tr key={u.id} className="hover:bg-gray-50/80 transition-colors">
+                                <td className="p-4 font-bold text-gray-900">{u.name}</td>
+                                <td className="p-4 text-gray-600 font-mono text-sm flex items-center gap-2"><Phone size={14} className="text-gray-400" /> {u.phone}</td>
+                                <td className="p-4">
+                                  {u.openid ? (
+                                    <span className="text-green-600 text-xs bg-green-50 px-2 py-1 rounded flex items-center gap-1 w-fit border border-green-100">
+                                      <CheckCircle size={10} /> 已绑定 ({u.openid.slice(0, 8)}...)
+                                    </span>
+                                  ) : (
+                                    <span className="text-orange-400 text-xs bg-orange-50 px-2 py-1 rounded w-fit border border-orange-100 opacity-80">
+                                      待首次登录
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="p-4 flex gap-1 flex-wrap">
+                                  {u.authorized_sites.map(s => (
+                                    <span key={s} className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 border border-gray-200">{s}</span>
+                                  ))}
+                                </td>
+                                <td className="p-4 text-right space-x-3 text-sm">
+                                  <button className="text-blue-600 hover:text-blue-800 hover:underline">编辑</button>
+                                  <button className="text-red-500 hover:text-red-700 hover:underline">删除</button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-gray-500 text-sm mb-4">管理所有的在建项目，删除项目将隐藏其相关数据。</p>
+                      <div className="space-y-3">
+                        {sites.map(s => (
+                          <div key={s.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-all shadow-sm">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-100">
+                                <MapPin size={20} />
+                              </div>
+                              <span className="font-bold text-gray-800 text-lg">{s.name}</span>
+                            </div>
+                            <div className="flex gap-4 pr-2">
+                              <button className="text-gray-400 hover:text-blue-600 transition-colors"><Edit size={18} /></button>
+                              <button className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-6 flex justify-end">
+                        <button onClick={async () => {
+                          const name = prompt('项目名称');
+                          if (name) {
+                            await axios.post('http://175.178.10.70:3000/api/sites', { name });
+                            fetchSites();
+                          }
+                        }} className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all font-bold text-sm"><Plus size={16} /> 新增工地</button>
+                      </div>
+                    </>
+                  )}
+
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+            )
+          }
+        </div >
+      </main >
+    </div >
   );
 }
 
