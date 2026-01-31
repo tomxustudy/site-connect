@@ -316,8 +316,8 @@ export default function AdminApp() {
           {activeTab === 'settings' && (
             <div className="flex-1 p-10 overflow-y-auto space-y-10 flex flex-col">
               <div className="flex gap-12 border-b-2 border-slate-100 shrink-0 px-6">
-                <button onClick={() => setSettingsSubTab('users')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>人员名单管理</button>
-                <button onClick={() => setSettingsSubTab('sites')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>项目地点管理</button>
+                <button onClick={() => setSettingsSubTab('users')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>人员管理</button>
+                <button onClick={() => setSettingsSubTab('sites')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>工地管理</button>
               </div>
 
               <div className="bg-white rounded-[40px] p-10 shadow-sm border border-slate-100 flex-1 space-y-8">
@@ -332,23 +332,26 @@ export default function AdminApp() {
                           await axios.post('http://175.178.10.70:3000/api/users', { name, phone, authorized_sites: [] });
                           fetchUsers();
                         }
-                      }} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:-translate-y-1 transition-all flex items-center gap-2"><Plus size={20} /> 添加受邀人员</button>
+                      }} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:-translate-y-1 transition-all flex items-center gap-2"><Plus size={20} /> 新增人员</button>
                     </div>
                     <div className="border border-slate-100 rounded-[32px] overflow-hidden">
                       <table className="w-full text-left">
                         <thead className="bg-slate-50 text-slate-400 font-black text-[10px] tracking-widest uppercase">
-                          <tr><th className="px-8 py-6">姓名</th><th className="px-8 py-6">联系电话</th><th className="px-8 py-6">绑定状态 (微信)</th><th className="px-8 py-6">授权项目</th><th className="px-8 py-6 text-right">管理</th></tr>
+                          <tr><th className="px-8 py-6">姓名</th><th className="px-8 py-6">手机号 (登录凭证)</th><th className="px-8 py-6">微信号 (自动绑定)</th><th className="px-8 py-6">授权工地</th><th className="px-8 py-6 text-right">操作</th></tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 text-slate-700 font-bold">
                           {users.map(u => (
                             <tr key={u.id} className="hover:bg-slate-50/50">
                               <td className="px-8 py-8 font-black text-slate-900">{u.name}</td>
-                              <td className="px-8 py-8 text-slate-400 font-mono text-[13px]">{u.phone}</td>
+                              <td className="px-8 py-8 text-slate-400 font-mono text-[13px] flex items-center gap-2"><Smartphone size={16} className="text-blue-400" /> {u.phone}</td>
                               <td className="px-8 py-8">
-                                {u.openid ? <span className="text-green-600 flex items-center gap-1"><Link2 size={14} /> 已绑定</span> : <span className="text-orange-400 flex items-center gap-1 opacity-60 font-medium italic"><RefreshCw size={12} /> 待首次登录</span>}
+                                {u.openid ? <span className="text-green-600 flex items-center gap-1 bg-green-50 px-2 py-1 rounded w-fit text-[11px]"><Link2 size={12} /> 已绑定 ({u.openid.slice(0, 6)}...)</span> : <span className="text-orange-400 flex items-center gap-1 opacity-60 font-medium italic text-[11px] bg-orange-50 px-2 py-1 rounded w-fit"><RefreshCw size={12} /> 待首次登录</span>}
                               </td>
-                              <td className="px-8 py-8 flex gap-1 flex-wrap">{u.authorized_sites.map(s => <span key={s} className="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-black">{s}</span>)}</td>
-                              <td className="px-8 py-8 text-right"><button className="p-3 text-red-400 hover:text-red-600 transform hover:scale-110 transition-all"><Trash2 size={18} /></button></td>
+                              <td className="px-8 py-8 flex gap-1 flex-wrap">{u.authorized_sites.map(s => <span key={s} className="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-black border text-slate-500">{s}</span>)}</td>
+                              <td className="px-8 py-8 text-right space-x-2">
+                                <button className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit3 size={18} /></button>
+                                <button className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -358,14 +361,14 @@ export default function AdminApp() {
                 ) : (
                   <>
                     <div className="flex justify-between items-center">
-                      <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">项目地点库 ({sites.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Project Sites</p></div>
+                      <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">工地列表 ({sites.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Project Sites</p></div>
                       <button onClick={async () => {
                         const name = prompt('项目名称');
                         if (name) {
                           await axios.post('http://175.178.10.70:3000/api/sites', { name });
                           fetchSites();
                         }
-                      }} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:-translate-y-1 transition-all flex items-center gap-2"><Plus size={20} /> 创建新项目</button>
+                      }} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:-translate-y-1 transition-all flex items-center gap-2"><Plus size={20} /> 新增工地</button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {sites.map(s => (
@@ -373,10 +376,13 @@ export default function AdminApp() {
                           <div>
                             <div className="flex justify-between items-start mb-4">
                               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm"><Box size={24} /></div>
-                              <button className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"><Trash2 size={20} /></button>
+                              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button className="text-slate-300 hover:text-blue-500 transition-colors"><Edit3 size={18} /></button>
+                                <button className="text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                              </div>
                             </div>
                             <h4 className="font-black text-slate-900 text-lg mb-1">{s.name}</h4>
-                            <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">Create {new Date(s.created_at).toLocaleDateString()}</p>
+                            <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">Est. {new Date(s.created_at).toLocaleDateString()}</p>
                           </div>
                         </div>
                       ))}
