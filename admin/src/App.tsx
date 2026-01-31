@@ -200,32 +200,51 @@ export default function AdminApp() {
     <div className="flex h-screen bg-[#F8FAFC] font-sans overflow-hidden">
       {/* 1. 左侧侧边栏 */}
       <aside className="w-[280px] bg-[#0F172A] text-slate-400 flex flex-col shrink-0 shadow-2xl z-30">
-        <div className="p-10 flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-500/30 font-black">匠</div>
-          <div>
-            <span className="font-black text-white text-xl tracking-tight block leading-none">工地通</span>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[3px] mt-1 block">Pro Management</span>
-          </div>
+        <div className="h-24 flex items-center px-8 border-b border-slate-800">
+          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center mr-3 text-white font-bold">工</div>
+          <span className="text-white font-bold text-lg">工地通 Admin</span>
         </div>
 
-        <nav className="flex-1 px-6 space-y-3 mt-6">
-          <NavItem active={activeTab === 'inbox'} label="实时收件箱" icon={<LayoutGrid size={22} />} badge={pendingCount} onClick={() => setActiveTab('inbox')} />
-          <NavItem active={activeTab === 'export'} label="批量导出/归档" icon={<Download size={22} />} onClick={() => setActiveTab('export')} />
-          <NavItem active={activeTab === 'settings'} label="场所与人员配置" icon={<Settings size={22} />} onClick={() => setActiveTab('settings')} />
+        <nav className="flex-1 px-4 space-y-2 mt-6">
+          <NavItem active={activeTab === 'inbox'} label="收件箱" icon={<LayoutGrid size={20} />} badge={pendingCount} onClick={() => setActiveTab('inbox')} />
+          <NavItem active={activeTab === 'export'} label="导出数据" icon={<Download size={20} />} onClick={() => setActiveTab('export')} />
+          <NavItem active={activeTab === 'settings'} label="工地设置" icon={<Settings size={20} />} onClick={() => setActiveTab('settings')} />
         </nav>
+
+        <div className="p-6 border-t border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-slate-600 rounded-full"></div>
+            <div>
+              <p className="text-white text-sm font-bold">李文员</p>
+              <p className="text-xs opacity-60">办公室管理员</p>
+            </div>
+          </div>
+        </div>
       </aside>
 
       {/* 2. 主内容区 */}
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-24 px-10 flex items-center justify-between border-b border-slate-200 bg-white/70 backdrop-blur-xl shrink-0 z-20 sticky top-0">
-          <div>
-            <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">
-              {activeTab === 'inbox' ? '待核实凭证' : activeTab === 'export' ? '云端归档库' : '系统组织架构'}
-            </h2>
-            <p className="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest opacity-80">Site Connect Operator Console</p>
-          </div>
+        <header className="h-16 bg-white border-b border-slate-200 flex justify-between items-center px-8 shadow-sm shrink-0 z-20">
           <div className="flex items-center gap-4">
-            <button onClick={() => { fetchRecords(); fetchDictionaries(); }} className="p-3 text-slate-400 hover:text-blue-600 transition-colors"><RefreshCw size={24} className={loading ? "animate-spin" : ""} /></button>
+            <h1 className="text-xl font-bold text-gray-800">
+              {activeTab === 'inbox' ? '收件箱' : activeTab === 'export' ? '导出数据' : '工地设置'}
+            </h1>
+            {activeTab === 'inbox' && pendingCount > 0 && (
+              <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold">
+                {pendingCount} 条待确认
+              </span>
+            )}
+          </div>
+
+          <div className="flex gap-3">
+            {activeTab === 'inbox' && (
+              <button
+                onClick={() => alert("功能模拟：生成日报")}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm text-sm font-bold"
+              >
+                <Send size={16} /> 确认并发送今日日报
+              </button>
+            )}
           </div>
         </header>
 
