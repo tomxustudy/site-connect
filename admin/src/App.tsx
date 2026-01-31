@@ -3,7 +3,8 @@ import {
   LayoutGrid, Download, Settings,
   Search, Filter, ChevronRight,
   Clock, User, CheckCircle, XCircle,
-  FileText, Send, AlertCircle, RefreshCw, Box, Plus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, Link2, ChevronLeft, CheckSquare, Square
+  FileText, Send, AlertCircle, RefreshCw, Box, Plus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, Link2, ChevronLeft, CheckSquare, Square,
+  MessageCircle, Phone, MapPin, Edit
 } from 'lucide-react';
 import axios from 'axios';
 import JSZip from 'jszip';
@@ -316,15 +317,23 @@ export default function AdminApp() {
           {activeTab === 'settings' && (
             <div className="flex-1 p-10 overflow-y-auto space-y-10 flex flex-col">
               <div className="flex gap-12 border-b-2 border-slate-100 shrink-0 px-6">
-                <button onClick={() => setSettingsSubTab('users')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>人员名单管理</button>
-                <button onClick={() => setSettingsSubTab('sites')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>项目地点管理</button>
+                <button onClick={() => setSettingsSubTab('users')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>人员管理</button>
+                <button onClick={() => setSettingsSubTab('sites')} className={`pb-6 border-b-4 font-black text-sm uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>工地管理</button>
               </div>
 
               <div className="bg-white rounded-[40px] p-10 shadow-sm border border-slate-100 flex-1 space-y-8">
                 {settingsSubTab === 'users' ? (
                   <>
-                    <div className="flex justify-between items-center">
-                      <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">人员准入名单 ({users.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Authorized Field Personnel</p></div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+                      <div className="text-blue-500 mt-1"><MessageCircle size={18} /></div>
+                      <div className="text-sm text-blue-800">
+                        <p className="font-bold mb-1">关于人员授权与微信号：</p>
+                        <p>现场人员在首次登录小程序时，需授权获取手机号。系统将自动匹配下方列表中的手机号进行身份验证，并自动获取其微信号（OpenID）用于后续的身份核验。</p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-lg text-slate-900">现场人员列表 ({users.length})</h3>
                       <button onClick={async () => {
                         const name = prompt('姓名');
                         const phone = prompt('手机号');
@@ -332,23 +341,45 @@ export default function AdminApp() {
                           await axios.post('http://175.178.10.70:3000/api/users', { name, phone, authorized_sites: [] });
                           fetchUsers();
                         }
-                      }} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:-translate-y-1 transition-all flex items-center gap-2"><Plus size={20} /> 添加受邀人员</button>
+                      }} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-sm transition-all text-sm font-bold"><Plus size={16} /> 新增人员</button>
                     </div>
-                    <div className="border border-slate-100 rounded-[32px] overflow-hidden">
+
+                    <div className="border border-slate-100 rounded-lg overflow-hidden">
                       <table className="w-full text-left">
-                        <thead className="bg-slate-50 text-slate-400 font-black text-[10px] tracking-widest uppercase">
-                          <tr><th className="px-8 py-6">姓名</th><th className="px-8 py-6">联系电话</th><th className="px-8 py-6">绑定状态 (微信)</th><th className="px-8 py-6">授权项目</th><th className="px-8 py-6 text-right">管理</th></tr>
+                        <thead className="bg-gray-50 border-b">
+                          <tr>
+                            <th className="p-4 font-bold text-gray-600 text-sm">姓名</th>
+                            <th className="p-4 font-bold text-gray-600 text-sm">手机号 (登录凭证)</th>
+                            <th className="p-4 font-bold text-gray-600 text-sm">微信号 (自动绑定)</th>
+                            <th className="p-4 font-bold text-gray-600 text-sm">授权工地</th>
+                            <th className="p-4 font-bold text-gray-600 text-sm text-right">操作</th>
+                          </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50 text-slate-700 font-bold">
+                        <tbody className="divide-y divide-gray-100">
                           {users.map(u => (
-                            <tr key={u.id} className="hover:bg-slate-50/50">
-                              <td className="px-8 py-8 font-black text-slate-900">{u.name}</td>
-                              <td className="px-8 py-8 text-slate-400 font-mono text-[13px]">{u.phone}</td>
-                              <td className="px-8 py-8">
-                                {u.openid ? <span className="text-green-600 flex items-center gap-1"><Link2 size={14} /> 已绑定</span> : <span className="text-orange-400 flex items-center gap-1 opacity-60 font-medium italic"><RefreshCw size={12} /> 待首次登录</span>}
+                            <tr key={u.id} className="hover:bg-gray-50/80 transition-colors">
+                              <td className="p-4 font-bold text-gray-900">{u.name}</td>
+                              <td className="p-4 text-gray-600 font-mono text-sm flex items-center gap-2"><Phone size={14} className="text-gray-400" /> {u.phone}</td>
+                              <td className="p-4">
+                                {u.openid ? (
+                                  <span className="text-green-600 text-xs bg-green-50 px-2 py-1 rounded flex items-center gap-1 w-fit border border-green-100">
+                                    <CheckCircle size={10} /> 已绑定 ({u.openid.slice(0, 8)}...)
+                                  </span>
+                                ) : (
+                                  <span className="text-orange-400 text-xs bg-orange-50 px-2 py-1 rounded w-fit border border-orange-100 opacity-80">
+                                    待首次登录
+                                  </span>
+                                )}
                               </td>
-                              <td className="px-8 py-8 flex gap-1 flex-wrap">{u.authorized_sites.map(s => <span key={s} className="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-black">{s}</span>)}</td>
-                              <td className="px-8 py-8 text-right"><button className="p-3 text-red-400 hover:text-red-600 transform hover:scale-110 transition-all"><Trash2 size={18} /></button></td>
+                              <td className="p-4 flex gap-1 flex-wrap">
+                                {u.authorized_sites.map(s => (
+                                  <span key={s} className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 border border-gray-200">{s}</span>
+                                ))}
+                              </td>
+                              <td className="p-4 text-right space-x-3 text-sm">
+                                <button className="text-blue-600 hover:text-blue-800 hover:underline">编辑</button>
+                                <button className="text-red-500 hover:text-red-700 hover:underline">删除</button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -357,29 +388,31 @@ export default function AdminApp() {
                   </>
                 ) : (
                   <>
-                    <div className="flex justify-between items-center">
-                      <div><h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase">项目地点库 ({sites.length})</h3><p className="text-xs text-slate-400 font-bold mt-1">Project Sites</p></div>
+                    <p className="text-gray-500 text-sm mb-4">管理所有的在建项目，删除项目将隐藏其相关数据。</p>
+                    <div className="space-y-3">
+                      {sites.map(s => (
+                        <div key={s.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-all shadow-sm">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-100">
+                              <MapPin size={20} />
+                            </div>
+                            <span className="font-bold text-gray-800 text-lg">{s.name}</span>
+                          </div>
+                          <div className="flex gap-4 pr-2">
+                            <button className="text-gray-400 hover:text-blue-600 transition-colors"><Edit size={18} /></button>
+                            <button className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-6 flex justify-end">
                       <button onClick={async () => {
                         const name = prompt('项目名称');
                         if (name) {
                           await axios.post('http://175.178.10.70:3000/api/sites', { name });
                           fetchSites();
                         }
-                      }} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:-translate-y-1 transition-all flex items-center gap-2"><Plus size={20} /> 创建新项目</button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {sites.map(s => (
-                        <div key={s.id} className="p-8 bg-slate-50 border border-slate-100 rounded-[32px] flex flex-col justify-between group hover:border-blue-500 transition-all">
-                          <div>
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm"><Box size={24} /></div>
-                              <button className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"><Trash2 size={20} /></button>
-                            </div>
-                            <h4 className="font-black text-slate-900 text-lg mb-1">{s.name}</h4>
-                            <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">Est. {new Date(s.created_at).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      ))}
+                      }} className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all font-bold text-sm"><Plus size={16} /> 新增工地</button>
                     </div>
                   </>
                 )}
