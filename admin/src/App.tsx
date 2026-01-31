@@ -324,114 +324,114 @@ export default function AdminApp() {
 
           {/* B. Export */}
           {activeTab === 'export' && (
-            <div className="flex-1 p-10 overflow-y-auto">
-              <div className="bg-white rounded-[40px] shadow-sm border border-slate-100 p-10 min-h-full flex flex-col">
-                {/* Toolbar */}
-                <div className="flex justify-between items-center mb-8">
-                  <div className="flex items-center gap-6">
-                    <button onClick={handleExportZip} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-blue-500/20 text-sm transition-all hover:-translate-y-0.5">
-                      <Download size={18} /> 批量导出 (Excel + 照片)
-                    </button>
-                    <span className="text-slate-400 text-sm font-bold">已选择: <span className="text-slate-900">{selectedIds.size}</span> 项</span>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <div className="relative group">
-                      <select value={filterSite} onChange={e => setFilterSite(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2.5 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
-                        <option value="">所有工地</option>
-                        {dictionaries.sites.map((o: any) => <option key={o.name} value={o.name}>{o.name}</option>)}
-                      </select>
-                      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
-                    </div>
-                    <div className="relative group">
-                      <select value={filterType} onChange={e => setFilterType(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2.5 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
-                        <option value="">所有类型</option>
-                        <option value="person">人员</option>
-                        <option value="material">材料</option>
-                      </select>
-                      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
-                    </div>
-                    <div className="relative group">
-                      <select value={filterUser} onChange={e => setFilterUser(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2.5 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
-                        <option value="">所有记录人</option>
-                        {dictionaries.recorders.map((o: any) => <option key={o.name} value={o.name}>{o.name}</option>)}
-                      </select>
-                      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
-                    </div>
-                  </div>
+            <div className="flex-1 overflow-y-auto px-10 py-8 relative">
+              {/* Toolbar */}
+              <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-4">
+                  <button onClick={handleExportZip} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-blue-500/20 text-sm transition-all hover:-translate-y-0.5">
+                    <Download size={18} /> 批量导出 (Excel + 照片)
+                  </button>
+                  {selectedIds.size > 0 && <span className="text-slate-400 text-sm font-bold animate-in fade-in slide-in-from-left-2">已选择 <span className="text-slate-900">{selectedIds.size}</span> 项</span>}
                 </div>
 
-                {/* Table */}
-                <div className="border border-slate-100 rounded-2xl overflow-hidden flex-1">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-[#F8FAFC]">
-                      <tr>
-                        <th className="p-6 w-16 text-center">
-                          <button onClick={() => selectedIds.size === filteredRecords.length ? setSelectedIds(new Set()) : setSelectedIds(new Set(filteredRecords.map(r => r.id)))} className="text-slate-400 hover:text-blue-600">
-                            {selectedIds.size > 0 && selectedIds.size === filteredRecords.length ? <CheckSquare size={20} className="text-blue-600" /> : <Square size={20} />}
-                          </button>
-                        </th>
-                        <th className="p-6 font-bold text-slate-600 text-xs text-center">流水号ID</th>
-                        <th className="p-6 font-bold text-slate-600 text-xs text-center w-24">记录人</th>
-                        <th className="p-6 font-bold text-slate-600 text-xs w-48">类型/工地</th>
-                        <th className="p-6 font-bold text-slate-600 text-xs px-0">详情摘要</th>
-                        <th className="p-6 font-bold text-slate-600 text-xs w-32">时间</th>
-                        <th className="p-6 font-bold text-slate-600 text-xs text-center w-24">状态</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50 text-slate-700">
-                      {filteredRecords.map((r, index) => (
-                        <tr key={r.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(r.id) ? 'bg-blue-50/50' : ''}`}>
-                          <td className="p-6 text-center">
-                            <button onClick={() => {
-                              const newSet = new Set(selectedIds);
-                              if (newSet.has(r.id)) newSet.delete(r.id);
-                              else newSet.add(r.id);
-                              setSelectedIds(newSet);
-                            }} className="text-slate-300 hover:text-blue-600">
-                              {selectedIds.has(r.id) ? <CheckSquare size={20} className="text-blue-600" /> : <Square size={20} />}
-                            </button>
-                          </td>
-                          <td className="p-6 group cursor-pointer text-center" onClick={() => setSelectedId(r.id)}>
-                            <div className="font-mono text-xs text-slate-400 group-hover:text-blue-600 transition-colors uppercase">{r.id.split('-')[0]}-</div>
-                            <div className="font-mono text-xs text-slate-500 font-bold group-hover:text-blue-600 transition-colors uppercase">{r.id.split('-').slice(1).join('-')}</div>
-                          </td>
-                          <td className="p-6 text-center font-bold">{r.recorder_name || '-'}</td>
-                          <td className="p-6">
-                            <div className="flex gap-2 items-center flex-wrap">
-                              <span className={`px-1.5 py-0.5 rounded text-[10px] text-white font-bold ${(r.type === 'person' ? 'bg-blue-500' : r.type === 'expense' ? 'bg-green-500' : 'bg-orange-500')}`}>
-                                {r.type === 'person' ? '人员' : r.type === 'expense' ? '费用' : '材料'}
-                              </span>
-                              <span className="text-xs font-bold text-slate-500">{r.site_name}</span>
-                            </div>
-                          </td>
-                          <td className="p-6 px-0 max-w-sm">
-                            <div className="flex gap-2 items-center">
-                              <span className="font-black text-slate-800 text-sm whitespace-nowrap">{r.tags?.[0]}</span>
-                              <span className="text-slate-500 text-xs line-clamp-1">{r.description}</span>
-                            </div>
-                          </td>
-                          <td className="p-6">
-                            <div className="text-xs text-slate-500 font-mono scale-90 origin-left">{new Date(r.server_created_at).toLocaleDateString()}</div>
-                            <div className="text-xs text-slate-400 font-mono scale-90 origin-left">{new Date(r.server_created_at).toLocaleTimeString()}</div>
-                          </td>
-                          <td className="p-6 text-center">
-                            {r.status === 'confirmed' ? (
-                              <div className="mx-auto text-green-600 text-[10px] font-black leading-tight bg-green-50 rounded p-1 w-8">已<br />归档</div>
-                            ) : r.status === 'voided' ? (
-                              <div className="mx-auto text-red-300 text-[10px] font-black leading-tight bg-red-50 rounded p-1 opacity-50 w-8">已<br />作废</div>
-                            ) : (
-                              <div className="mx-auto text-orange-500 text-[10px] font-black leading-tight bg-orange-50 rounded p-1 w-8">待<br />处理</div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {filteredRecords.length === 0 && <div className="p-10 text-center text-slate-300">暂无数据</div>}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-slate-400 text-sm font-bold mr-2"><Filter size={14} /> 筛选:</div>
+                  <div className="relative group">
+                    <select value={filterSite} onChange={e => setFilterSite(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
+                      <option value="">所有工地</option>
+                      {dictionaries.sites.map((o: any) => <option key={o.name} value={o.name}>{o.name}</option>)}
+                    </select>
+                    <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                  </div>
+                  <div className="relative group">
+                    <select value={filterType} onChange={e => setFilterType(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
+                      <option value="">所有类型</option>
+                      <option value="person">人员</option>
+                      <option value="material">材料</option>
+                    </select>
+                    <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                  </div>
+                  <div className="relative group">
+                    <select value={filterUser} onChange={e => setFilterUser(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
+                      <option value="">所有记录人</option>
+                      {dictionaries.recorders.map((o: any) => <option key={o.name} value={o.name}>{o.name}</option>)}
+                    </select>
+                    <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                  </div>
                 </div>
               </div>
+
+              {/* Table */}
+              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50/50 border-b border-slate-100 text-slate-400">
+                    <tr>
+                      <th className="p-6 w-16 text-center">
+                        <button onClick={() => selectedIds.size === filteredRecords.length ? setSelectedIds(new Set()) : setSelectedIds(new Set(filteredRecords.map(r => r.id)))} className="text-slate-400 hover:text-blue-600">
+                          {selectedIds.size > 0 && selectedIds.size === filteredRecords.length ? <CheckSquare size={20} className="text-blue-600" /> : <Square size={20} />}
+                        </button>
+                      </th>
+                      <th className="p-6 font-bold text-slate-600 text-xs text-center">流水号ID</th>
+                      <th className="p-6 font-bold text-slate-600 text-xs text-center w-24">记录人</th>
+                      <th className="p-6 font-bold text-slate-600 text-xs w-48">类型/工地</th>
+                      <th className="p-6 font-bold text-slate-600 text-xs px-0">详情摘要</th>
+                      <th className="p-6 font-bold text-slate-600 text-xs w-32">时间</th>
+                      <th className="p-6 font-bold text-slate-600 text-xs text-center w-24">状态</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50 text-slate-700">
+                    {filteredRecords.map((r, index) => (
+                      <tr key={r.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(r.id) ? 'bg-blue-50/50' : ''}`}>
+                        <td className="p-6 text-center">
+                          <button onClick={() => {
+                            const newSet = new Set(selectedIds);
+                            if (newSet.has(r.id)) newSet.delete(r.id);
+                            else newSet.add(r.id);
+                            setSelectedIds(newSet);
+                          }} className="text-slate-300 hover:text-blue-600">
+                            {selectedIds.has(r.id) ? <CheckSquare size={20} className="text-blue-600" /> : <Square size={20} />}
+                          </button>
+                        </td>
+                        <td className="p-6 group cursor-pointer text-center" onClick={() => setSelectedId(r.id)}>
+                          <div className="font-mono text-xs text-slate-400 group-hover:text-blue-600 transition-colors uppercase">{r.id.split('-')[0]}-</div>
+                          <div className="font-mono text-xs text-slate-500 font-bold group-hover:text-blue-600 transition-colors uppercase">{r.id.split('-').slice(1).join('-')}</div>
+                        </td>
+                        <td className="p-6 text-center font-bold">{r.recorder_name || '-'}</td>
+                        <td className="p-6">
+                          <div className="flex gap-2 items-center flex-wrap">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] text-white font-bold ${(r.type === 'person' ? 'bg-blue-500' : r.type === 'expense' ? 'bg-green-500' : 'bg-orange-500')}`}>
+                              {r.type === 'person' ? '人员' : r.type === 'expense' ? '费用' : '材料'}
+                            </span>
+                            <span className="text-xs font-bold text-slate-500">{r.site_name}</span>
+                          </div>
+                        </td>
+                        <td className="p-6 px-0 max-w-sm">
+                          <div className="flex gap-2 items-center">
+                            <span className="font-black text-slate-800 text-sm whitespace-nowrap">{r.tags?.[0]}</span>
+                            <span className="text-slate-500 text-xs line-clamp-1">{r.description}</span>
+                          </div>
+                        </td>
+                        <td className="p-6">
+                          <div className="text-xs text-slate-500 font-mono scale-90 origin-left">{new Date(r.server_created_at).toLocaleDateString()}</div>
+                          <div className="text-xs text-slate-400 font-mono scale-90 origin-left">{new Date(r.server_created_at).toLocaleTimeString()}</div>
+                        </td>
+                        <td className="p-6 text-center">
+                          {r.status === 'confirmed' ? (
+                            <div className="mx-auto text-green-600 text-[10px] font-black leading-tight bg-green-50 rounded p-1 w-8">已<br />归档</div>
+                          ) : r.status === 'voided' ? (
+                            <div className="mx-auto text-red-300 text-[10px] font-black leading-tight bg-red-50 rounded p-1 opacity-50 w-8">已<br />作废</div>
+                          ) : (
+                            <div className="mx-auto text-orange-500 text-[10px] font-black leading-tight bg-orange-50 rounded p-1 w-8">待<br />处理</div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {filteredRecords.length === 0 && <div className="p-10 text-center text-slate-300">暂无数据</div>}
+              </div>
             </div>
+
           )}
           {/* C. Settings */}
           {
