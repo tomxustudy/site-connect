@@ -610,26 +610,30 @@ function HandleUI({ record, onClose, onAction }: any) {
         <div><h3 className="font-black text-slate-900 text-3xl tracking-tighter uppercase">核实并归档</h3><p className="text-[10px] text-blue-600 font-mono tracking-widest mt-2 uppercase font-black opacity-60">ID REF: {record.id}</p></div>
         <button onClick={onClose} className="text-slate-200 hover:text-slate-400 transition-colors"><XCircle size={48} /></button>
       </div>
-      <div className="flex-1 overflow-y-auto p-12 space-y-12 pb-32">
-        <section className="space-y-6">
-          <div className="aspect-[4/3] bg-slate-50 rounded-[48px] overflow-hidden border border-slate-100 shadow-2xl flex items-center justify-center group relative">
+      <div className="flex-1 overflow-y-auto p-10 space-y-8 pb-32">
+        <section className="space-y-4">
+          <div className="aspect-[4/3] bg-slate-50 rounded-[32px] overflow-hidden border border-slate-100 shadow-sm flex items-center justify-center group relative">
             <ImageCarousel images={record.images && record.images.length > 0 ? record.images : (record.image_url ? [record.image_url] : [])} />
           </div>
-          <div className="p-8 bg-blue-50/30 rounded-[32px] border border-blue-50 text-slate-700 font-medium italic relative">
-            <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500/20"></div>
-            <p className="text-[15px] leading-relaxed">\"{record.description || '现场该记录主要描述缺失，请结合照片核实。'}\"</p>
+          <div className="p-6 bg-blue-50/30 rounded-[24px] border border-blue-50 text-slate-700 font-medium italic relative">
+            <div className="absolute top-0 left-0 w-1 h-full bg-blue-500/20"></div>
+            <p className="text-sm leading-relaxed">\"{record.description || '现场该记录主要描述缺失，请结合照片核实。'}\"</p>
           </div>
         </section>
-        <section className="grid grid-cols-2 gap-6">
-          <InputCell label="供应商/协作单位" placeholder="输入名称" value={formData.supplier} onChange={(v: any) => setFormData({ ...formData, supplier: v })} />
+        <section className="grid grid-cols-2 gap-5">
+          <div className="col-span-2">
+            <InputCell label="供应商/协作单位" placeholder="输入名称" value={formData.supplier} onChange={(v: any) => setFormData({ ...formData, supplier: v })} />
+          </div>
           <InputCell label="确认数量" placeholder="0" type="number" value={formData.amount} onChange={(v: any) => setFormData({ ...formData, amount: v })} />
           <InputCell label="单价参考" placeholder="0.00" type="number" value={formData.unit_price} onChange={(v: any) => setFormData({ ...formData, unit_price: v })} />
-          <InputCell label="审核意见 (记录档)" placeholder="输入留言..." textarea value={formData.admin_note} onChange={(v: any) => setFormData({ ...formData, admin_note: v })} />
+          <div className="col-span-2 pt-2">
+            <InputCell label="审核意见 (记录档)" placeholder="输入留言..." textarea value={formData.admin_note} onChange={(v: any) => setFormData({ ...formData, admin_note: v })} />
+          </div>
         </section>
       </div>
-      <div className="p-12 bg-slate-50 border-t border-slate-100 flex gap-6 sticky bottom-0 z-10">
-        <button onClick={() => onAction(record.id, 'voided')} className="flex-1 py-6 bg-white text-red-500 font-black rounded-3xl shadow-sm border-2 border-slate-200 hover:bg-red-50 transition-all uppercase tracking-widest text-[12px]">驳回归档</button>
-        <button onClick={() => onAction(record.id, 'confirmed', formData)} className="flex-2 py-6 bg-blue-600 text-white font-black rounded-3xl shadow-2xl shadow-blue-500/30 hover:bg-blue-700 hover:-translate-y-1 transition-all uppercase tracking-widest text-[12px]">通过并写入云端</button>
+      <div className="p-8 bg-white border-t border-slate-100 flex gap-4 sticky bottom-0 z-10 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
+        <button onClick={() => onAction(record.id, 'voided')} className="flex-1 py-4 bg-slate-50 text-red-500 font-black rounded-2xl border border-slate-200 hover:bg-red-50 hover:border-red-100 transition-all uppercase tracking-widest text-xs">驳回归档</button>
+        <button onClick={() => onAction(record.id, 'confirmed', formData)} className="flex-1 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-500/30 hover:bg-blue-700 hover:-translate-y-0.5 transition-all uppercase tracking-widest text-xs">通过并写入云端</button>
       </div>
     </div>
   );
@@ -670,12 +674,12 @@ function ImageCarousel({ images }: { images: string[] }) {
 
 function InputCell({ label, value, onChange, placeholder, disabled, type, textarea }: any) {
   return (
-    <div className={`space-y-3 ${textarea ? 'col-span-2' : ''}`}>
+    <div className={`space-y-2 ${textarea ? 'col-span-2' : ''}`}>
       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{label}</label>
       {textarea ? (
-        <textarea className="w-full bg-white border-2 border-slate-100 rounded-[28px] px-8 py-6 text-sm font-bold focus:border-blue-500 outline-none transition-all h-32 resize-none shadow-sm" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
+        <textarea className="w-full bg-white border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold focus:border-blue-500 outline-none transition-all h-28 resize-none shadow-sm placeholder:font-normal" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
       ) : (
-        <input disabled={disabled} type={type || 'text'} className={`w-full bg-white border-2 border-slate-100 rounded-[24px] px-8 py-5 text-sm font-bold focus:border-blue-500 outline-none transition-all shadow-sm ${disabled ? 'bg-slate-50 opacity-50' : ''}`} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
+        <input disabled={disabled} type={type || 'text'} className={`w-full bg-white border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold focus:border-blue-500 outline-none transition-all shadow-sm placeholder:font-normal ${disabled ? 'bg-slate-50 opacity-50' : ''}`} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
       )}
     </div>
   );
