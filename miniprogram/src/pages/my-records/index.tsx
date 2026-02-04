@@ -11,9 +11,13 @@ export default function MyRecords() {
   const fetchRecords = async () => {
     setLoading(true);
     try {
+      const token = Taro.getStorageSync('token');
       const res = await Taro.request({
         url: 'http://175.178.10.70:3000/api/records',
-        method: 'GET'
+        method: 'GET',
+        header: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (res.data.success) {
@@ -30,6 +34,11 @@ export default function MyRecords() {
   };
 
   useDidShow(() => {
+    const token = Taro.getStorageSync('token');
+    if (!token) {
+      Taro.reLaunch({ url: '/pages/login/index' });
+      return;
+    }
     fetchRecords();
   });
 
@@ -45,6 +54,9 @@ export default function MyRecords() {
             const result = await Taro.request({
               url: `http://175.178.10.70:3000/api/records/${id}/status`,
               method: 'PUT',
+              header: {
+                'Authorization': `Bearer ${Taro.getStorageSync('token')}`
+              },
               data: { status: 'voided' }
             });
 

@@ -1,5 +1,6 @@
 export default defineAppConfig({
   pages: [
+    'pages/login/index',
     'pages/index/index',
     'pages/record/index',      // 我们稍后创建：核心记录流程
     'pages/my-records/index'   // 我们稍后创建：我的记录列表
@@ -7,12 +8,12 @@ export default defineAppConfig({
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#fff',
-    navigationBarTitleText: '工地通', //
+    navigationBarTitleText: '现场通', //
     navigationBarTextStyle: 'black'
   },
   tabBar: {
     color: '#9ca3af',
-    selectedColor: '#2563eb', // 选中时的蓝色
+    selectedColor: '#f57c00', // 选中时的橘红色
     backgroundColor: '#ffffff',
     borderStyle: 'white',
     list: [

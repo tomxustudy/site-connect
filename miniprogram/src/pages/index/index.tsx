@@ -1,8 +1,21 @@
+import { useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import './index.scss'
 
 export default function Index() {
+
+  const [user, setUser] = useState<any>(null);
+
+  Taro.useDidShow(() => {
+    const token = Taro.getStorageSync('token');
+    const userData = Taro.getStorageSync('user');
+    if (!token || !userData) {
+      Taro.reLaunch({ url: '/pages/login/index' });
+    } else {
+      setUser(userData);
+    }
+  });
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -22,7 +35,7 @@ export default function Index() {
       {/* 极简欢迎栏 */}
       <View className="welcome-header">
         <View className="user-profile">
-          <Text className="t-header">张三，{getGreeting()}</Text>
+          <Text className="t-header">{user?.name || '管理员'}，{getGreeting()}</Text>
         </View>
         <View className="online-status">
           <View className="dot-green"></View>

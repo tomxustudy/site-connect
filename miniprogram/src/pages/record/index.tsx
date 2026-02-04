@@ -1,12 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { View, Text, Image, Textarea } from '@tarojs/components'
-import Taro, { useRouter } from '@tarojs/taro'
+import Taro, { useRouter, useDidShow } from '@tarojs/taro'
 import { RecordType } from '../../types'
 import './index.scss'
 
-// --- 1. 模拟数据 ---
-const MOCK_SITES = ['万科A项目', '碧桂园B项目', '恒大C项目'];
-
+// --- 1. 静态配置 ---
 const TAG_OPTIONS: Record<string, string[]> = {
   person: ['工人报到', '当日考勤', '请假/离职', '其他'],
   material: ['进场', '退场', '领用', '盘点'],
@@ -26,6 +24,9 @@ export default function RecordPage() {
     description: '',
     tempImagePaths: [] as string[]
   });
+
+  const [sites, setSites] = useState<any[]>([]);
+  const [recorders, setRecorders] = useState<any[]>([]);
 
   const API_BASE_URL = 'http://175.178.10.70:3000';
   const hasRecorderError = useRef(false);
@@ -62,6 +63,9 @@ export default function RecordPage() {
             url: `${API_BASE_URL}/api/asr`,
             filePath: tempFilePath,
             name: 'voice',
+            header: {
+              'Authorization': `Bearer ${Taro.getStorageSync('token')}`
+            },
             success: resolve,
             fail: reject
           });
@@ -108,6 +112,34 @@ export default function RecordPage() {
     });
   };
 
+  const fetchDictionaries = async () => {
+    try {
+      const token = Taro.getStorageSync('token');
+      const res = await Taro.request({
+        url: `${API_BASE_URL}/api/dictionaries`,
+        method: 'GET',
+        header: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.data.success) {
+        setSites(res.data.sites);
+        setRecorders(res.data.recorders);
+      }
+    } catch (e) {
+      console.error('Fetch dict error', e);
+    }
+  };
+
+  useDidShow(() => {
+    const token = Taro.getStorageSync('token');
+    if (!token) {
+      Taro.reLaunch({ url: '/pages/login/index' });
+      return;
+    }
+    fetchDictionaries();
+  });
+
   const removeImage = (index: number) => {
     setRecordData(prev => ({ ...prev, tempImagePaths: prev.tempImagePaths.filter((_, i) => i !== index) }));
   };
@@ -116,15 +148,26 @@ export default function RecordPage() {
     if (!recordData.description) return;
     try {
       Taro.showLoading({ title: '保存中...', mask: true });
+      const token = Taro.getStorageSync('token');
       const uploadedUrls: string[] = [];
       for (const path of recordData.tempImagePaths) {
-        const res = await Taro.uploadFile({ url: `${API_BASE_URL}/api/upload`, filePath: path, name: 'photo' });
+        const res = await Taro.uploadFile({
+          url: `${API_BASE_URL}/api/upload`,
+          filePath: path,
+          name: 'photo',
+          header: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         const d = JSON.parse(res.data);
         if (d.success) uploadedUrls.push(d.url);
       }
       await Taro.request({
         url: `${API_BASE_URL}/api/records`,
         method: 'POST',
+        header: {
+          'Authorization': `Bearer ${token}`
+        },
         data: {
           type: recordType,
           site_name: recordData.siteName,
@@ -208,12 +251,16 @@ export default function RecordPage() {
         )}
 
         {step === 2 && (
-          <View className="combined-section">
+          <View className="combined-section animate-slide-up">
             <Text className="section-hint">确认项目工地 *</Text>
             <View className="site-grid">
-              {MOCK_SITES.map(site => (
-                <View key={site} className={`site-chip ${recordData.siteName === site ? 'selected' : ''}`} onClick={() => setRecordData(prev => ({ ...prev, siteName: site }))}>
-                  {site}
+              {sites.map(site => (
+                <View
+                  key={site.name}
+                  className={`site-chip ${recordData.siteName === site.name ? 'selected' : ''}`}
+                  onClick={() => setRecordData(prev => ({ ...prev, siteName: site.name }))}
+                >
+                  {site.name}
                 </View>
               ))}
             </View>
