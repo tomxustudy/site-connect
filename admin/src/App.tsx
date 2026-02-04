@@ -722,8 +722,20 @@ function UserForm({ tenants, isSuperAdmin, onSuccess, getHeaders }: { tenants: T
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const isWorker = formData.role === 'WORKER';
+  const needsTenant = formData.role !== 'SUPER_ADMIN';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // 前端验证
+    if (needsTenant && !formData.tenant_id_target) {
+      setError('请选择所属客户');
+      return;
+    }
+    if (isWorker && !formData.phone) {
+      setError('现场人员必须填写手机号');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -739,6 +751,23 @@ function UserForm({ tenants, isSuperAdmin, onSuccess, getHeaders }: { tenants: T
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold">{error}</div>}
+
+      {/* 所属客户 - 非超管必填 */}
+      {(isSuperAdmin || needsTenant) && (
+        <div className="space-y-1">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">所属客户 *</label>
+          <select
+            required={needsTenant}
+            className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none"
+            value={formData.tenant_id_target}
+            onChange={e => setFormData({ ...formData, tenant_id_target: e.target.value })}
+          >
+            <option value="">请选择客户</option>
+            {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+        </div>
+      )}
+
       <div className="space-y-1">
         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">用户名 *</label>
         <input
@@ -749,8 +778,11 @@ function UserForm({ tenants, isSuperAdmin, onSuccess, getHeaders }: { tenants: T
         />
       </div>
       <div className="space-y-1">
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">手机号</label>
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">
+          手机号 {isWorker && <span className="text-red-500">*</span>}
+        </label>
         <input
+          required={isWorker}
           className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all"
           value={formData.phone}
           onChange={e => setFormData({ ...formData, phone: e.target.value })}
@@ -779,19 +811,6 @@ function UserForm({ tenants, isSuperAdmin, onSuccess, getHeaders }: { tenants: T
           </select>
         </div>
       </div>
-      {isSuperAdmin && (
-        <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">所属租户 *</label>
-          <select
-            className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none"
-            value={formData.tenant_id_target}
-            onChange={e => setFormData({ ...formData, tenant_id_target: e.target.value })}
-          >
-            <option value="">请选择租户</option>
-            {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        </div>
-      )}
       <button
         type="submit"
         disabled={loading}
