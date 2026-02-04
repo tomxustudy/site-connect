@@ -1,6 +1,8 @@
 import * as tencentcloud from "tencentcloud-sdk-nodejs-asr";
 import fs from "fs";
 import dotenv from "dotenv";
+import { exec } from "child_process";
+import path from "path";
 
 dotenv.config();
 
@@ -21,40 +23,65 @@ const clientConfig = {
 
 const client = new AsrClient(clientConfig);
 
-/**
- * 语音转文字服务 (ASR)
- * @param filePath 音频文件路径 (录音文件)
- * @returns 识别出的文字
- */
+function convertToWav(inputPath: string): Promise<string> {
+    const outputPath = inputPath + '.wav';
+    return new Promise((resolve, reject) => {
+        // 强制转为 16k 采样率, 单声道, pcm_s16le (WAV标准)
+        const cmd = `ffmpeg -y -i "${inputPath}" -ac 1 -ar 16000 -f wav "${outputPath}"`;
+        console.log(`🎤 Converting audio: ${cmd}`);
+        exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`❌ FFmpeg Error: ${error.message}`);
+                console.error(`❌ FFmpeg Stderr: ${stderr}`);
+                return reject(error);
+            }
+            resolve(outputPath);
+        });
+    });
+}
+
 export async function transcribeAudio(filePath: string): Promise<string> {
+    let targetPath = filePath;
+    let cleanupNeeded = false;
+
     try {
-        const audioData = fs.readFileSync(filePath);
+        console.log(`🎤 Processing file for ASR: ${filePath}`);
+
+        // 1. 自动转换格式 (确保兼容 WebM, AAC, MP3 等)
+        targetPath = await convertToWav(filePath);
+        cleanupNeeded = true;
+
+        // 2. 读取转换后的 WAV
+        const audioData = fs.readFileSync(targetPath);
         const base64Audio = audioData.toString("base64");
 
+        console.log(`🎤 Converted WAV size: ${audioData.length}`);
+
         const params = {
-            EngineModelType: "16k_zh", // 16k 中文普通话
             EngSerViceType: "16k_zh",
-            ChannelNum: 1,
-            ResAudioFormat: "mp3",
-            VoiceFormat: "mp3",
-            SourceType: 1, // 1: base64, 0: url
+            SourceType: 1,
+            VoiceFormat: "wav", // 强制指定 WAV
             Data: base64Audio,
             DataLen: audioData.length,
-            // 工业级优化：后续可以在腾讯云后台配置热词表后在此启用
-            // HotwordId: "SITE_CONNECT_HOTWORDS", 
         };
 
         return new Promise((resolve, reject) => {
-            client.SentenceRecognition(params, (err, response) => {
+            console.log("☁️ 正在请求腾讯云 ASR...");
+            client.SentenceRecognition(params, (err: any, response) => {
                 if (err) {
-                    console.error("Tencent ASR Error:", err);
+                    console.error("❌ 腾讯云 ASR 接口报错:", err.message || err);
                     return reject(err);
                 }
+                console.log("✅ 腾讯云 ASR 请求成功");
                 resolve(response.Result || "");
             });
         });
-    } catch (error) {
-        console.error("ASR Service Error:", error);
+    } catch (error: any) {
+        console.error("❌ ASR Service 内部错误:", error.message || error);
         throw error;
+    } finally {
+        if (cleanupNeeded && targetPath !== filePath) {
+            fs.unlink(targetPath, () => { }); // 异步删除临时文件
+        }
     }
 }

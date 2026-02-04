@@ -12,7 +12,7 @@ export default function MyRecords() {
     setLoading(true);
     try {
       const res = await Taro.request({
-        url: 'http://175.178.10.70:3000/api/records',
+        url: 'http://127.0.0.1:3000/api/records',
         method: 'GET'
       });
 
@@ -43,7 +43,7 @@ export default function MyRecords() {
           Taro.showLoading({ title: '正在处理...' });
           try {
             const result = await Taro.request({
-              url: `http://175.178.10.70:3000/api/records/${id}/status`,
+              url: `http://127.0.0.1:3000/api/records/${id}/status`,
               method: 'PUT',
               data: { status: 'voided' }
             });

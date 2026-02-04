@@ -65,7 +65,7 @@ export const OfflineManager = {
         if (record.tempImagePath) {
             // 注意：这里的 tempImagePath 可能是很久以前的，需注意微信临时文件有效期
             const uploadRes = await Taro.uploadFile({
-                url: 'http://175.178.10.70:3000/api/upload',
+                url: 'http://127.0.0.1:3000/api/upload',
                 filePath: record.tempImagePath,
                 name: 'photo',
             });
@@ -77,7 +77,7 @@ export const OfflineManager = {
 
         // 2. 提交数据
         const res = await Taro.request({
-            url: 'http://175.178.10.70:3000/api/records',
+            url: 'http://127.0.0.1:3000/api/records',
             method: 'POST',
             data: {
                 type: record.type,

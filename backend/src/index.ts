@@ -13,6 +13,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// 全局错误捕获，防止语音识别等异步任务崩溃导致服务死机
+process.on('uncaughtException', (err) => {
+    console.error('🔥 Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('🔥 Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 // 全局请求日志
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -194,4 +203,4 @@ app.put('/api/records/:id/status', async (req: any, res: any) => {
 
 
 
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(Number(PORT), '0.0.0.0', () => console.log(`🚀 Server running on port ${PORT} (0.0.0.0)`));
