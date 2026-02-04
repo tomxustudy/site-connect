@@ -70,6 +70,9 @@ async function generateBusinessId(siteName: string, recordType: string) {
             const parts = lastId.split('-');
             if (parts.length > 0) {
                 const lastNum = parseInt(parts[parts.length - 1]);
+                if (!isNaN(lastNum)) {
+                    index = lastNum + 1;
+                }
             }
         }
         return `${prefix}${String(index).padStart(3, '0')}`;
