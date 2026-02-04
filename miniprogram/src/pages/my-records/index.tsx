@@ -12,7 +12,7 @@ export default function MyRecords() {
     setLoading(true);
     try {
       const res = await Taro.request({
-        url: 'http://127.0.0.1:3000/api/records',
+        url: 'http://175.178.10.70:3000/api/records',
         method: 'GET'
       });
 
@@ -43,7 +43,7 @@ export default function MyRecords() {
           Taro.showLoading({ title: '正在处理...' });
           try {
             const result = await Taro.request({
-              url: `http://127.0.0.1:3000/api/records/${id}/status`,
+              url: `http://175.178.10.70:3000/api/records/${id}/status`,
               method: 'PUT',
               data: { status: 'voided' }
             });
@@ -81,52 +81,60 @@ export default function MyRecords() {
               <Text className="t-body">暂无云端凭证</Text>
             </View>
           ) : (
-            records.map((item) => (
-              <View key={item.id} className={`record-material-card card ${item.status === 'voided' ? 'is-voided' : ''}`}>
-                <View className="card-top">
-                  <View className="top-left">
-                    <Text className={`status-chip ${item.status}`}>
-                      {getStatusName(item.status)}
-                    </Text>
-                    <Text className="site-pill t-hint">{item.site_name || '未定义工地'}</Text>
-                  </View>
-                  <Text className={`type-tag ${getTagColor(item.type)}`}>
-                    {getTypeName(item.type)}
-                  </Text>
-                </View>
-
-                <View className="card-middle">
-                  <View className="image-preview-wrapper ripple" onClick={() => item.image_url && Taro.previewImage({ urls: [item.image_url] })}>
-                    {item.image_url ? (
-                      <Image src={item.image_url} className="records-thumb" mode="aspectFill" />
-                    ) : (
-                      <View className="no-image-placeholder">
-                        <Text className="t-hint">无图凭证</Text>
+            records.map((item) => {
+              try {
+                const displayImage = item.image_url || (item.images && item.images.length > 0 ? item.images[0] : null);
+                return (
+                  <View key={item.id} className={`record-material-card card ${item.status === 'voided' ? 'is-voided' : ''}`}>
+                    <View className="card-top">
+                      <View className="top-left">
+                        <Text className={`status-chip ${item.status}`}>
+                          {getStatusName(item.status)}
+                        </Text>
+                        <Text className="site-pill t-hint">{item.site_name || '未定义工地'}</Text>
                       </View>
-                    )}
-                  </View>
+                      <Text className={`type-tag ${getTagColor(item.type)}`}>
+                        {getTypeName(item.type)}
+                      </Text>
+                    </View>
 
-                  <View className="content-detail">
-                    <Text className="record-description t-title">{item.description || '未填写备注说明'}</Text>
-                    <View className="record-meta">
-                      <Text className="meta-time t-hint">{(() => {
-                        const utcDate = new Date(item.server_created_at);
-                        const beijingDate = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000);
-                        return beijingDate.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '-');
-                      })()}</Text>
+                    <View className="card-middle">
+                      <View className="image-preview-wrapper ripple" onClick={() => displayImage && Taro.previewImage({ urls: item.images && item.images.length > 0 ? item.images : [displayImage] })}>
+                        {displayImage ? (
+                          <Image src={displayImage} className="records-thumb" mode="aspectFill" />
+                        ) : (
+                          <View className="no-image-placeholder">
+                            <Text className="t-hint">无图凭证</Text>
+                          </View>
+                        )}
+                      </View>
 
-                      {/* 内嵌式作废按钮 */}
-                      {item.status !== 'voided' && (
-                        <View className="void-btn-inline" onClick={() => handleVoidRecord(item.id)}>
-                          作废
+                      <View className="content-detail">
+                        <Text className="record-description t-title">{item.description || '未填写备注说明'}</Text>
+                        <View className="record-meta">
+                          <Text className="meta-time t-hint">{(() => {
+                            if (!item.server_created_at) return '时间未知';
+                            const utcDate = new Date(item.server_created_at);
+                            const beijingDate = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000);
+                            return beijingDate.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '-');
+                          })()}</Text>
+
+                          {/* 内嵌式作废按钮 */}
+                          {item.status !== 'voided' && (
+                            <View className="void-btn-inline" onClick={() => handleVoidRecord(item.id)}>
+                              作废
+                            </View>
+                          )}
                         </View>
-                      )}
+                      </View>
                     </View>
                   </View>
-                </View>
-
-              </View>
-            ))
+                );
+              } catch (e) {
+                console.error('Render error for item:', item.id, e);
+                return null;
+              }
+            })
           )}
         </View>
       </ScrollView>
