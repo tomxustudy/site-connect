@@ -389,9 +389,8 @@ app.put('/api/records/:id/status', authenticateToken, async (req: any, res: any)
     } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
 
-// 所有非 API 请求都返回前端 index.html (SPA 路由支持)
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
-});
+// Express 5 中不再支持 * 或 /* 作为路径。
+// 前端 SPA 应直接访问根路径 /，由 public/index.html 静态文件提供服务。
+
 
 app.listen(Number(PORT), '0.0.0.0', () => console.log(`🚀 Server running on port ${PORT} (0.0.0.0)`));
