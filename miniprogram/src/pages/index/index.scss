@@ -1,75 +1,201 @@
-/* src/pages/index/index.scss */
+/* ═══════════════════════════════════════════════════════════════════════════
+   首页 - 2026 大厂级设计
+═══════════════════════════════════════════════════════════════════════════ */
 
 .index-page {
   min-height: 100vh;
-  padding: 40rpx 32rpx;
+  padding: 48rpx 32rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 120rpx);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   👋 欢迎区域
+───────────────────────────────────────────────────────────────────────── */
 .welcome-header {
-  margin-bottom: 50rpx;
+  margin-bottom: 48rpx;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  animation: slideUp var(--duration-slow) var(--ease-spring) both;
 
   .user-profile {
     display: flex;
     flex-direction: column;
     gap: 8rpx;
+
+    .greeting {
+      font-size: 28rpx;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .username {
+      font-size: 52rpx;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -1rpx;
+    }
   }
 
   .online-status {
     display: flex;
     align-items: center;
     gap: 12rpx;
-    background: #fff;
-    padding: 10rpx 24rpx;
-    border-radius: 40rpx;
-    border: 2rpx solid var(--divider);
-    box-shadow: none;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20rpx);
+    -webkit-backdrop-filter: blur(20rpx);
+    padding: 16rpx 32rpx;
+    border-radius: var(--radius-full);
+    border: 1rpx solid var(--border-glass);
+    box-shadow: var(--shadow-sm);
 
     .dot-green {
-      width: 14rpx;
-      height: 14rpx;
-      background-color: var(--success);
+      width: 18rpx;
+      height: 18rpx;
+      background: var(--success);
       border-radius: 50%;
+      animation: pulse 2s infinite;
+      box-shadow: 0 0 12rpx var(--success);
+    }
+
+    .status-text {
+      font-size: 30rpx;
+      color: var(--text-secondary);
+      font-weight: 700;
     }
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   🎯 主操作区
+───────────────────────────────────────────────────────────────────────── */
 .main-actions {
   flex: 1;
 
   .section-title {
+    font-size: 32rpx;
+    font-weight: 700;
+    color: var(--text-main);
     margin-bottom: 32rpx;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+
+    &::before {
+      content: "";
+      width: 8rpx;
+      height: 32rpx;
+      background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
+      border-radius: var(--radius-xs);
+    }
   }
 
   .action-card {
-    background: var(--bg-surface);
-    border-radius: var(--radius-lg);
-    padding: 48rpx 40rpx;
-    margin-bottom: 32rpx;
+    background: var(--bg-glass);
+    backdrop-filter: blur(40rpx) saturate(180%);
+    -webkit-backdrop-filter: blur(40rpx) saturate(180%);
+    border-radius: var(--radius-xl);
+    padding: 40rpx;
+    margin-bottom: 24rpx;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 2rpx solid var(--divider);
-    transition: transform 0.1s ease;
+    border: 3rpx solid var(--divider);
+    /* 加深边框 */
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+    transition: all var(--duration-normal) var(--ease-spring);
+    animation: slideUp var(--duration-slow) var(--ease-spring) both;
+
+    /* 渐变装饰条 */
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 8rpx;
+      border-radius: var(--radius-xs);
+    }
+
+    /* 涟漪效果层 */
+    &::after {
+      content: "";
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      top: 50%;
+      left: 50%;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 50%);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      transition: transform 0.6s var(--ease-out-expo), opacity 0.4s;
+      pointer-events: none;
+    }
 
     &:active {
-      transform: scale(0.98);
-      background-color: #f1f3f4;
+      background: #fff3e0 !important;
+      /* 硬编码橙色反馈 */
+      border-color: #f57c00 !important;
+      box-shadow: var(--shadow-sm);
+
+      &::after {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        transition: transform 0s, opacity 0s;
+      }
+    }
+
+    /* 品牌色渐变条 - 使用硬编码橙 */
+    &.blue-gradient::before {
+      background: linear-gradient(180deg, #f57c00 0%, #cc6600 100%);
+    }
+
+    &.orange-gradient::before {
+      background: linear-gradient(180deg, #ff9800 0%, #f57c00 100%);
+    }
+
+    &.green-gradient::before {
+      background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+    }
+
+    /* 第 N 张卡片延迟动画 */
+    &:nth-child(1) {
+      animation-delay: 0.05s;
+    }
+
+    &:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.15s;
     }
 
     .card-left {
       display: flex;
       align-items: center;
-      gap: 40rpx;
+      gap: 32rpx;
+      padding-left: 24rpx;
 
       .card-icon {
-        font-size: 72rpx;
+        width: 96rpx;
+        height: 96rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-surface);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        transition: transform var(--duration-normal) var(--ease-spring);
+
+        .icon-inner {
+          font-size: 48rpx;
+        }
       }
 
       .card-info {
@@ -78,34 +204,71 @@
         gap: 8rpx;
 
         .card-label {
-          color: var(--text-primary);
+          font-size: 40rpx;
+          font-weight: 800;
+          color: var(--text-main);
+        }
+
+        .card-desc {
+          font-size: 30rpx;
+          color: var(--text-secondary);
+          font-weight: 500;
         }
       }
     }
 
     .arrow {
-      color: var(--divider);
-      font-size: 40rpx;
+      width: 56rpx;
+      height: 56rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-light);
+      border-radius: 50%;
+      color: var(--primary);
+      transition: transform var(--duration-normal) var(--ease-spring);
+
+      .arrow-icon {
+        font-size: 28rpx;
+        font-weight: 700;
+      }
     }
 
-    /* 品牌色引导 */
-    &.blue-ripple {
-      border-left: 12rpx solid var(--primary);
-    }
+    &:active {
+      .card-icon {
+        /* 移除缩放动画 */
+        border-color: var(--primary);
+      }
 
-    &.orange-ripple {
-      border-left: 12rpx solid var(--warning);
-    }
-
-    &.green-ripple {
-      border-left: 12rpx solid var(--success);
+      .arrow {
+        transform: translateX(12rpx);
+        background: var(--primary);
+        color: #fff;
+      }
     }
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   📊 底部状态
+───────────────────────────────────────────────────────────────────────── */
 .system-footer {
   margin-top: auto;
   padding: 40rpx 0;
   text-align: center;
-  border-top: 1px solid var(--divider);
+  border-top: 1rpx solid var(--divider);
+  animation: fadeIn var(--duration-slow) var(--ease-smooth) 0.3s both;
+
+  .footer-text {
+    font-size: 24rpx;
+    color: var(--text-muted);
+    letter-spacing: 1rpx;
+  }
+
+  .version {
+    font-size: 22rpx;
+    color: var(--text-muted);
+    opacity: 0.6;
+    margin-top: 8rpx;
+  }
 }

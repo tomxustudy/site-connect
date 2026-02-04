@@ -15,7 +15,8 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "multer": "^2.0.2",
-    "pg": "^8.17.2"
+    "pg": "^8.17.2",
+    "tencentcloud-sdk-nodejs-asr": "^4.1.171"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

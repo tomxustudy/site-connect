@@ -5,12 +5,19 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { query } from './config/db';
+import { transcribeAudio } from './services/asr';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// 全局请求日志
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use(express.static(path.join(__dirname, '../public')));
@@ -105,6 +112,43 @@ app.post('/api/upload', upload.single('photo'), (req: any, res: any) => {
     res.json({ success: true, url: `http://${req.headers.host}/uploads/${req.file.filename}` });
 });
 
+// 语音识别接口
+app.post('/api/asr', upload.single('voice'), async (req: any, res: any) => {
+    try {
+        console.log('--- ASR Request Started ---');
+        console.log('Headers:', JSON.stringify(req.headers));
+
+        if (!req.file) {
+            console.error('❌ No file in request');
+            return res.status(400).json({ success: false, message: '没有上传音频文件' });
+        }
+
+        console.log('🎤 File info:', {
+            filename: req.file.filename,
+            size: req.file.size,
+            path: req.file.path,
+            mimetype: req.file.mimetype
+        });
+
+        const text = await transcribeAudio(req.file.path);
+        console.log('✅ Recognition Result:', text);
+
+        res.json({
+            success: true,
+            text: text
+        });
+    } catch (err: any) {
+        console.error('❌ ASR Error Detail:', err);
+        res.status(500).json({
+            success: false,
+            error: err.message,
+            stack: err.stack
+        });
+    } finally {
+        console.log('--- ASR Request Finished ---');
+    }
+});
+
 app.post('/api/records', async (req: any, res: any) => {
     try {
         const { type, site_name, tags, description, origin_voice_text, image_url, images, amount, unit_price, recorder_name } = req.body;
@@ -147,5 +191,7 @@ app.put('/api/records/:id/status', async (req: any, res: any) => {
         res.json({ success: true, data: result.rows[0] });
     } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
+
+
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text, Image, Textarea, Button, ScrollView } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { RecordType } from '../../types'
+import GIcon from '../../components/GIcon'
 import './index.scss'
 
 // --- 1. 模拟数据 ---
@@ -37,6 +38,7 @@ export default function RecordPage() {
   // --- 3. 核心逻辑 ---
 
   const handleTakePhoto = () => {
+    Taro.vibrateShort({ type: 'medium' });
     Taro.chooseMedia({
       count: 9, // 支持最多9张
       mediaType: ['image'],
@@ -53,6 +55,7 @@ export default function RecordPage() {
   };
 
   const removeImage = (index: number) => {
+    Taro.vibrateShort({ type: 'light' });
     setRecordData(prev => ({
       ...prev,
       tempImagePaths: prev.tempImagePaths.filter((_, i) => i !== index)
@@ -60,19 +63,26 @@ export default function RecordPage() {
   };
 
   const startRecording = () => {
-    Taro.vibrateShort();
+    Taro.vibrateShort({ type: 'medium' });
     setIsRecording(true);
     Taro.showToast({ title: '录音识别中...', icon: 'none' });
   };
 
   const stopRecording = () => {
+    Taro.vibrateShort({ type: 'heavy' });
     setTimeout(() => {
       setRecordData(prev => ({ ...prev, description: prev.description + '[语音识别模拟结果]' }));
       setIsRecording(false);
     }, 500);
   };
 
+  const goStep = (s: number) => {
+    Taro.vibrateShort({ type: 'light' });
+    setStep(s);
+  };
+
   const handleSubmit = async () => {
+    Taro.vibrateShort({ type: 'medium' });
     if (!recordData.siteName) {
       Taro.showToast({ title: '请选择工地', icon: 'none' });
       setStep(2);
@@ -131,6 +141,7 @@ export default function RecordPage() {
 
       if (result.data.success) {
         Taro.showToast({ title: '同步云端成功', icon: 'success' });
+        Taro.vibrateShort({ type: 'heavy' });
         setTimeout(() => {
           const pages = Taro.getCurrentPages();
           if (pages.length > 1) {
@@ -172,9 +183,9 @@ export default function RecordPage() {
           <View
             className={`nav-btn back ${step === 1 ? 'hidden' : ''}`}
             hoverClass="btn-hover"
-            onClick={() => step > 1 && setStep(step - 1)}
+            onClick={() => step > 1 && goStep(step - 1)}
           >
-            ← 上一步
+            <GIcon type="arrow-left" size={28} color="currentColor" className="mr-1" /> 上一步
           </View>
 
           {step < 3 ? (
@@ -182,9 +193,9 @@ export default function RecordPage() {
               className={`nav-btn next ${((step === 1 && recordData.tempImagePaths.length === 0) || (step === 2 && (!recordData.siteName || recordData.tags.length === 0))) ? 'disabled' : ''}`}
               hoverClass="btn-hover"
               disabled={(step === 1 && recordData.tempImagePaths.length === 0) || (step === 2 && (!recordData.siteName || recordData.tags.length === 0))}
-              onClick={() => setStep(step + 1)}
+              onClick={() => goStep(step + 1)}
             >
-              下一步 →
+              下一步 <GIcon type="arrow-right" size={28} color="currentColor" className="ml-1" />
             </Button>
           ) : (
             <Button
@@ -193,7 +204,7 @@ export default function RecordPage() {
               disabled={!recordData.description}
               onClick={handleSubmit}
             >
-              提交云端 ✔
+              提交云端 <GIcon type="check" size={28} color="currentColor" className="ml-1" />
             </Button>
           )}
         </View>
@@ -201,96 +212,102 @@ export default function RecordPage() {
 
       <View className="record-card-container card">
         <ScrollView scrollY style={{ maxHeight: '65vh' }}>
-          {/* Step 1: 多图拍摄 */}
-          {step === 1 && (
-            <View className="camera-section">
-              <View className="image-grid">
-                {recordData.tempImagePaths.map((path, idx) => (
-                  <View key={path} className="image-item">
-                    <Image src={path} className="grid-img" mode="aspectFill" onClick={() => Taro.previewImage({ urls: recordData.tempImagePaths, current: path })} />
-                    <View className="delete-badge" onClick={() => removeImage(idx)}>×</View>
+          <View key={step} className="animate-fade-in-right">
+            {/* Step 1: 多图拍摄 */}
+            {step === 1 && (
+              <View className="camera-section">
+                <View className="image-grid">
+                  {recordData.tempImagePaths.map((path, idx) => (
+                    <View key={path} className="image-item">
+                      <Image src={path} className="grid-img" mode="aspectFill" onClick={() => Taro.previewImage({ urls: recordData.tempImagePaths, current: path })} />
+                      <View className="delete-badge" onClick={() => removeImage(idx)}>
+                        <GIcon type="trash" size={24} color="#fff" />
+                      </View>
+                    </View>
+                  ))}
+                  {recordData.tempImagePaths.length < 9 && (
+                    <View className="camera-trigger-small" hoverClass="ripple" onClick={handleTakePhoto}>
+                      <View className="plus-circle">
+                        <GIcon type="plus" size={40} color="var(--primary)" />
+                      </View>
+                      <Text className="t-hint mt-1">添加图片</Text>
+                    </View>
+                  )}
+                </View>
+                <View className="empty-photo-tip mt-4" onClick={handleTakePhoto}>
+                  <View className="huge-icon-container">
+                    <GIcon type="camera" size={64} color="var(--primary)" />
                   </View>
-                ))}
-                {recordData.tempImagePaths.length < 9 && (
-                  <View className="camera-trigger-small" hoverClass="ripple" onClick={handleTakePhoto}>
-                    <Text className="plus-icon">+</Text>
-                    <Text className="t-hint">添加图片</Text>
-                  </View>
-                )}
-              </View>
-              {recordData.tempImagePaths.length === 0 && (
-                <View className="empty-photo-tip" onClick={handleTakePhoto}>
-                  <Text className="huge-icon">📷</Text>
                   <Text className="t-title">点击拍摄现场照片</Text>
-                  <Text className="t-hint">必须提供至少1张照片</Text>
-                </View>
-              )}
-            </View>
-          )}
-
-          {/* Step 2: 工地与标签合并 */}
-          {step === 2 && (
-            <View className="combined-section">
-              <Text className="section-hint t-title">确认项目工地 <Text className="required">*</Text></Text>
-              <View className="site-chips">
-                {MOCK_SITES.map(site => (
-                  <View
-                    key={site}
-                    className={`site-chip ${recordData.siteName === site ? 'selected' : ''}`}
-                    onClick={() => setRecordData(prev => ({ ...prev, siteName: site }))}
-                  >
-                    {site}
-                  </View>
-                ))}
-              </View>
-
-              <View className="divider-h" />
-
-              <Text className="section-hint t-title">选择记录标签 <Text className="required">*</Text></Text>
-              <View className="tag-grid">
-                {(TAG_OPTIONS[recordType] || []).map(tag => (
-                  <View
-                    key={tag}
-                    className={`tag-pill ${recordData.tags.includes(tag) ? 'selected' : ''}`}
-                    hoverClass="ripple"
-                    onClick={() => setRecordData(prev => ({ ...prev, tags: [tag] }))}
-                  >
-                    <Text className="t-body">{tag}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {/* Step 3: 说明与语音 */}
-          {step === 3 && (
-            <View className="final-section">
-              <View className="input-group">
-                <Textarea
-                  className="google-textarea t-body"
-                  placeholder="手动输入文字描述... (必填)"
-                  value={recordData.description}
-                  onInput={(e) => setRecordData(prev => ({ ...prev, description: e.detail.value }))}
-                />
-              </View>
-
-              <View className="voice-control">
-                <View
-                  className={`google-voice-btn ${isRecording ? 'recording' : ''}`}
-                  hoverClass="btn-hover"
-                  onLongPress={startRecording}
-                  onTouchEnd={stopRecording}
-                >
-                  <Text className="mic-icon">🎤</Text>
-                  <Text className="mic-text">{isRecording ? '正在识别' : '按住说话'}</Text>
+                  <Text className="t-hint">建议拍摄全景及细节</Text>
                 </View>
               </View>
+            )}
 
-              <View className="submit-tip t-hint" style={{ textAlign: 'center', marginTop: '40rpx', paddingBottom: '40rpx' }}>
-                * 请核对上方信息后点击右上角“提交云端”
+            {/* Step 2: 工地与标签合并 */}
+            {step === 2 && (
+              <View className="combined-section">
+                <Text className="section-hint t-title">确认项目工地 <Text className="required">*</Text></Text>
+                <View className="site-chips">
+                  {MOCK_SITES.map(site => (
+                    <View
+                      key={site}
+                      className={`site-chip ${recordData.siteName === site ? 'selected' : ''}`}
+                      onClick={() => setRecordData(prev => ({ ...prev, siteName: site }))}
+                    >
+                      {site}
+                    </View>
+                  ))}
+                </View>
+
+                <View className="divider-h" />
+
+                <Text className="section-hint t-title">选择记录标签 <Text className="required">*</Text></Text>
+                <View className="tag-grid">
+                  {(TAG_OPTIONS[recordType] || []).map(tag => (
+                    <View
+                      key={tag}
+                      className={`tag-pill ${recordData.tags.includes(tag) ? 'selected' : ''}`}
+                      hoverClass="ripple"
+                      onClick={() => setRecordData(prev => ({ ...prev, tags: [tag] }))}
+                    >
+                      <Text className="t-body">{tag}</Text>
+                    </View>
+                  ))}
+                </View>
               </View>
-            </View>
-          )}
+            )}
+
+            {/* Step 3: 说明与语音 */}
+            {step === 3 && (
+              <View className="final-section">
+                <View className="input-group">
+                  <Textarea
+                    className="google-textarea t-body"
+                    placeholder="手动输入文字描述... (必填)"
+                    value={recordData.description}
+                    onInput={(e) => setRecordData(prev => ({ ...prev, description: e.detail.value }))}
+                  />
+                </View>
+
+                <View className="voice-control">
+                  <View
+                    className={`google-voice-btn ${isRecording ? 'recording' : ''}`}
+                    hoverClass="btn-hover"
+                    onLongPress={startRecording}
+                    onTouchEnd={stopRecording}
+                  >
+                    <GIcon type="mic" size={80} color="#fff" className="mb-2" />
+                    <Text className="mic-text">{isRecording ? '正在识别' : '按住说话'}</Text>
+                  </View>
+                </View>
+
+                <View className="submit-tip t-hint" style={{ textAlign: 'center', marginTop: '40rpx', paddingBottom: '40rpx' }}>
+                  * 请核对上方信息后点击右上角“提交云端”
+                </View>
+              </View>
+            )}
+          </View>
         </ScrollView>
       </View>
     </View>
