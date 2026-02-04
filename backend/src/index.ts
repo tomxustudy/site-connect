@@ -42,6 +42,11 @@ const authenticateToken = (req: any, res: any, next: any) => {
     jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
         if (err) return res.status(403).json({ success: false, message: '会话过期，请重新登录' });
 
+        // 角色统一转大写处理
+        if (user.role) {
+            user.role = user.role.toUpperCase();
+        }
+
         // 支持超管通过 Header 切换租户上下文
         if (user.role === 'SUPER_ADMIN' && req.headers['x-tenant-id']) {
             user.tenant_id = parseInt(req.headers['x-tenant-id'] as string);
@@ -55,7 +60,7 @@ const authenticateToken = (req: any, res: any, next: any) => {
 // 角色检查中间件
 const checkRole = (roles: string[]) => {
     return (req: any, res: any, next: any) => {
-        if (!req.user || !roles.includes(req.user.role)) {
+        if (!req.user || !roles.map(r => r.toUpperCase()).includes(req.user.role?.toUpperCase())) {
             return res.status(403).json({ success: false, message: '权限不足' });
         }
         next();
@@ -251,16 +256,34 @@ app.post('/api/users', authenticateToken, checkRole(['SUPER_ADMIN', 'CLIENT_CLER
     try {
         const { username, password, name, role, phone, tenant_id_target } = req.body;
 
-        // 1. 权限校验
+        // 1. 角色映射（前端 -> 数据库）
+        const roleMap: Record<string, string> = {
+            'SUPER_ADMIN': 'super_admin',
+            'CLIENT_CLERK': 'clerk',
+            'WORKER': 'worker'
+        };
+        const dbRole = roleMap[role?.toUpperCase()] || 'worker';
+
+        // 2. 权限校验 & tenant_id 确定
         let final_tenant_id = req.user.tenant_id;
         if (req.user.role === 'SUPER_ADMIN') {
             final_tenant_id = tenant_id_target || null;
         }
 
-        // 2. 密码加密
+        // 3. 验证规则
+        // 3a. 文员和现场人员必须绑定客户
+        if ((dbRole === 'clerk' || dbRole === 'worker') && !final_tenant_id) {
+            return res.status(400).json({ success: false, message: '必须选择所属客户' });
+        }
+        // 3b. 现场人员手机号必填
+        if (dbRole === 'worker' && !phone) {
+            return res.status(400).json({ success: false, message: '现场人员手机号为必填项' });
+        }
+
+        // 4. 密码加密
         const password_hash = await bcrypt.hash(password || '123456', 10);
 
-        // 3. 查重
+        // 5. 查重
         const existing = await query("SELECT id FROM users WHERE username = $1", [username]);
         if (existing.rows.length > 0) {
             return res.status(400).json({ success: false, message: '用户名已存在' });
@@ -271,9 +294,12 @@ app.post('/api/users', authenticateToken, checkRole(['SUPER_ADMIN', 'CLIENT_CLER
             VALUES ($1, $2, $3, $4, $5, $6, NOW())
             RETURNING id, username, name, role, tenant_id;
         `;
-        const result = await query(sql, [username, password_hash, name, role || 'WORKER', phone, final_tenant_id]);
+        const result = await query(sql, [username, password_hash, name, dbRole, phone || null, final_tenant_id]);
         res.json({ success: true, data: result.rows[0] });
-    } catch (err: any) { res.status(500).json({ success: false, error: err.message }); }
+    } catch (err: any) {
+        console.error('创建用户失败:', err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
 });
 
 // --- 租户管理 (仅超管) ---
