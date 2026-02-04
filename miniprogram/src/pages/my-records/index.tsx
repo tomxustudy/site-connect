@@ -109,7 +109,11 @@ export default function MyRecords() {
                   <View className="content-detail">
                     <Text className="record-description t-title">{item.description || '未填写备注说明'}</Text>
                     <View className="record-meta">
-                      <Text className="meta-time t-hint">{new Date(item.server_created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '-')}</Text>
+                      <Text className="meta-time t-hint">{(() => {
+                        const utcDate = new Date(item.server_created_at);
+                        const beijingDate = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000);
+                        return beijingDate.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '-');
+                      })()}</Text>
 
                       {/* 内嵌式作废按钮 */}
                       {item.status !== 'voided' && (
