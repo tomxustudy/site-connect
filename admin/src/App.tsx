@@ -276,11 +276,13 @@ export default function AdminApp() {
 
   if (!isLoggedIn) {
     return <LoginPage onLogin={(u, t) => {
+      // 统一将角色转为大写，兼容数据库小写格式
+      const normalizedUser = { ...u, role: u.role?.toUpperCase() as 'SUPER_ADMIN' | 'CLIENT_CLERK' };
       setToken(t);
-      setCurrentUser(u);
+      setCurrentUser(normalizedUser);
       setIsLoggedIn(true);
       localStorage.setItem('admin_token', t);
-      localStorage.setItem('admin_user', JSON.stringify(u));
+      localStorage.setItem('admin_user', JSON.stringify(normalizedUser));
     }} />;
   }
 
