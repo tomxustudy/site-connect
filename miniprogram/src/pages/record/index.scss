@@ -1,94 +1,50 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   记录页 - 2026 大厂级高级动效
+   记录页 - 简约扁平化设计 (匹配截图 v1.0)
 ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --primary-orange: #f57c00;
+  --text-main: #333333;
+  --text-muted: #666666;
+  --bg-light: #ffffff;
+  --border-light: #eeeeee;
+}
 
 .record-page {
   min-height: 100vh;
-  padding: 48rpx 32rpx;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 40rpx);
+  padding: 40rpx 40rpx;
+  background-color: #ffffff;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   📍 步骤指示器 - 连线动画
+   📍 步骤指示器
 ───────────────────────────────────────────────────────────────────────── */
 .stepper-header {
-  margin-bottom: 40rpx;
-  animation: slideUp var(--duration-slow) var(--ease-spring) both;
+  margin-bottom: 60rpx;
 
   .stepper-track {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0;
-    margin-bottom: 24rpx;
-    position: relative;
-
-    .step-connector {
-      width: 80rpx;
-      height: 4rpx;
-      background: var(--divider);
-      position: relative;
-      overflow: hidden;
-
-      &::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 0;
-        height: 100%;
-        width: 0%;
-        background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
-        transition: width var(--duration-slow) var(--ease-spring);
-      }
-
-      &.active::after {
-        width: 100%;
-      }
-    }
+    gap: 40rpx;
+    margin-bottom: 40rpx;
 
     .step-dot {
-      width: 64rpx;
-      height: 64rpx;
-      border-radius: 50%;
-      background: var(--bg-surface);
-      border: 4rpx solid var(--divider);
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      z-index: 1;
-      transition: all var(--duration-normal) var(--ease-spring);
 
       .dot-num {
-        font-size: 28rpx;
-        font-weight: 800;
-        color: var(--text-muted);
-        transition: color var(--duration-normal) var(--ease-smooth);
+        font-size: 36rpx;
+        font-weight: 900;
+        color: #cccccc;
       }
 
-      &.active {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-        border-color: transparent;
-        box-shadow: var(--shadow-primary);
-        transform: scale(1.1);
-        animation: pop var(--duration-normal) var(--ease-spring);
-
-        .dot-num {
-          color: var(--text-on-primary);
-        }
-      }
-
-      &.completed {
-        background: var(--success);
-        border-color: transparent;
-        box-shadow: var(--shadow-success);
-
-        .dot-num {
-          color: var(--text-on-primary);
-        }
+      &.active .dot-num {
+        color: #000000;
       }
     }
   }
@@ -96,84 +52,48 @@
   .step-indicator-text {
     display: block;
     text-align: center;
-    font-size: 32rpx;
-    font-weight: 600;
-    color: var(--text-main);
-    margin-bottom: 32rpx;
+    font-size: 40rpx;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 40rpx;
   }
 
-  /* 导航按钮 */
+  /* 导航按钮区 */
   .nav-actions-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 24rpx;
+    margin-bottom: 20rpx;
 
     .nav-btn {
-      flex: 1;
       margin: 0;
-      height: 88rpx;
+      background: none;
+      padding: 0;
+      font-size: 34rpx;
+      font-weight: 500;
+      color: #666;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 12rpx;
-      padding: 0 32rpx;
-      border-radius: var(--radius-lg);
-      font-size: 30rpx;
-      font-weight: 600;
-      position: relative;
-      overflow: hidden;
-      transition: all var(--duration-normal) var(--ease-spring);
 
       &::after {
         border: none;
       }
 
       &.back {
-        flex: 0.8;
-        background: var(--bg-surface);
-        backdrop-filter: blur(20rpx);
-        -webkit-backdrop-filter: blur(20rpx);
-        color: var(--primary);
-        border: 2rpx solid var(--primary-light);
-
         &.hidden {
-          opacity: 0;
           visibility: hidden;
-          transform: translateX(-20rpx);
-        }
-
-        &:active {
-          background: var(--primary-light);
-          /* 移除缩放 */
         }
       }
 
       &.next {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-        color: var(--text-on-primary);
-        box-shadow: var(--shadow-primary);
+        color: var(--primary-orange);
 
         &.disabled {
-          background: var(--divider);
-          color: var(--text-muted);
-          box-shadow: none;
-          opacity: 0.7;
-        }
-
-        &:active:not(.disabled) {
-          background: #e65100 !important;
-          box-shadow: 0 4rpx 16rpx rgba(245, 124, 0, 0.5) !important;
+          opacity: 0.3;
         }
 
         &.submit {
-          background: linear-gradient(135deg, var(--success) 0%, hsl(160, 84%, 30%) 100%);
-          box-shadow: var(--shadow-success);
-
-          &:active:not(.disabled) {
-            background: hsl(160, 84%, 30%);
-            box-shadow: 0 4rpx 16rpx hsla(160, 84%, 39%, 0.4);
-          }
+          color: var(--primary-orange);
         }
       }
     }
@@ -181,372 +101,237 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   📦 内容卡片容器
+   📦 内容区域
 ───────────────────────────────────────────────────────────────────────── */
 .record-card-container {
   flex: 1;
-  background: var(--bg-glass);
-  backdrop-filter: blur(40rpx) saturate(180%);
-  -webkit-backdrop-filter: blur(40rpx) saturate(180%);
-  border-radius: var(--radius-2xl);
-  border: 1rpx solid var(--border-glass);
-  box-shadow: var(--shadow-lg), inset 0 1rpx 0 hsla(0, 0%, 100%, 0.6);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  animation: slideUp var(--duration-slow) var(--ease-spring) 0.1s both;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   📷 拍照区域
+   📷 拍照区域 (Step 1)
 ───────────────────────────────────────────────────────────────────────── */
 .camera-section {
-  padding: 40rpx;
-  animation: fadeIn var(--duration-normal) var(--ease-smooth) both;
-
   .image-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20rpx;
+    margin-bottom: 40rpx;
 
     .image-item {
       position: relative;
       aspect-ratio: 1;
-      border-radius: var(--radius-lg);
+      border-radius: 8rpx;
       overflow: hidden;
-      border: 2rpx solid var(--divider);
-      box-shadow: var(--shadow-sm);
-      transition: transform var(--duration-normal) var(--ease-spring);
-
-      &:active {
-        /* 移除缩放 */
-        border-color: var(--primary);
-      }
 
       .grid-img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
       }
 
       .delete-badge {
         position: absolute;
-        top: 8rpx;
-        right: 8rpx;
-        width: 48rpx;
-        height: 48rpx;
-        background: linear-gradient(135deg, var(--danger) 0%, hsl(0, 72%, 40%) 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: var(--shadow-danger);
-        transition: transform var(--duration-normal) var(--ease-spring);
-
-        &:active {
-          transform: scale(0.85);
-        }
+        top: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        padding: 4rpx 10rpx;
+        font-size: 24rpx;
       }
     }
 
     .camera-trigger-small {
-      aspect-ratio: 1;
-      border-radius: var(--radius-lg);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12rpx;
-      background: hsla(var(--hue-primary), 100%, 98%, 0.5);
-      transition: all var(--duration-normal) var(--ease-spring);
+      gap: 10rpx;
 
-      .plus-circle {
-        width: 80rpx;
-        height: 80rpx;
+      .plus-icon-circle {
+        width: 120rpx;
+        height: 120rpx;
         border-radius: 50%;
-        border: 5rpx dashed #f57c00 !important;
+        border: 4rpx dashed #d9a86a;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #fff;
-        position: relative;
 
-        /* 作为保险，如果 GIcon 还不亮，这里用 CSS 画一个加号 */
-        &::before,
-        &::after {
-          content: '';
-          position: absolute;
-          background: #f57c00;
-          border-radius: 2rpx;
-        }
-
-        &::before {
-          width: 32rpx;
-          height: 6rpx;
-        }
-
-        &::after {
-          width: 6rpx;
-          height: 32rpx;
+        .plus-sign {
+          font-size: 60rpx;
+          color: var(--primary-orange);
+          font-weight: 300;
         }
       }
 
-      &:active {
-        background: #fff3e0 !important;
+      .t-hint {
+        font-size: 26rpx;
+        color: #333;
+        font-weight: 500;
       }
     }
   }
 
-  .empty-photo-tip {
-    height: 480rpx;
+  .camera-trigger-central {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 24rpx;
-    background: linear-gradient(180deg, hsla(var(--hue-primary), 100%, 98%, 0.8) 0%, hsla(var(--hue-primary), 100%, 96%, 0.5) 100%);
-    border-radius: var(--radius-xl);
-    border: 3rpx dashed var(--primary-light);
-    transition: all var(--duration-normal) var(--ease-spring);
+    margin-top: 120rpx;
 
-    .huge-icon-container {
-      width: 160rpx;
-      height: 160rpx;
+    .huge-icon-wrapper {
+      width: 240rpx;
+      height: 240rpx;
+      border-radius: 50%;
+      border: 4rpx solid #efcc9f;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #ffffff;
-      border-radius: 50%;
-      border: 4rpx solid #f57c00;
-      /* 增加硬编码橙色边框 */
-      box-shadow: 0 8rpx 24rpx rgba(245, 124, 0, 0.2);
-      animation: breathe 3s infinite var(--ease-smooth);
+      margin-bottom: 40rpx;
+      background-color: #ffffff;
+
+      .huge-icon {
+        width: 90rpx;
+        height: 90rpx;
+      }
     }
 
-    &:active {
-      background: #fff3e0 !important;
-      border-color: #f57c00 !important;
+    .t-title {
+      font-size: 42rpx;
+      font-weight: 800;
+      color: #000;
+      margin-bottom: 20rpx;
+    }
+
+    .t-hint {
+      font-size: 30rpx;
+      color: #777;
     }
   }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   🏗️ 工地 & 标签选择
+   🏗️ 工地 & 标签 (Step 2)
 ───────────────────────────────────────────────────────────────────────── */
 .combined-section {
-  padding: 40rpx;
-  animation: fadeIn var(--duration-normal) var(--ease-smooth) both;
-
   .section-hint {
-    display: flex;
-    align-items: center;
-    gap: 8rpx;
-    font-size: 32rpx;
-    font-weight: 600;
-    color: var(--text-main);
-    margin-bottom: 24rpx;
-
-    .required {
-      color: var(--danger);
-      font-size: 28rpx;
-    }
+    font-size: 34rpx;
+    font-weight: 700;
+    margin-bottom: 30rpx;
+    display: block;
+    color: #000;
   }
 
-  .site-chips {
-    display: flex;
-    flex-wrap: wrap;
+  .site-grid,
+  .tag-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 20rpx;
-    margin-bottom: 48rpx;
+    margin-bottom: 60rpx;
 
-    .site-chip {
-      padding: 32rpx 40rpx;
-      /* 加大点击区域 */
-      background: var(--bg-surface);
-      border: 3rpx solid var(--divider);
-      border-radius: var(--radius-md);
+    .site-chip,
+    .tag-pill {
+      height: 120rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
       font-size: 34rpx;
-      /* 统一大字号 */
       font-weight: 700;
-      color: var(--text-main);
-      box-shadow: var(--shadow-sm);
-      transition: all var(--duration-normal) var(--ease-spring);
-      position: relative;
+      color: #333;
+      text-align: center;
+      border-radius: 8rpx;
+      transition: all 0.2s ease;
 
       &.selected {
-        background: #f57c00 !important;
-        border-color: #f57c00 !important;
-        color: #fff !important;
-        transform: translateY(-4rpx);
-        box-shadow: var(--shadow-primary);
-        animation: pop var(--duration-normal) var(--ease-spring);
-      }
-
-      &:active:not(.selected) {
-        background: #f0f0f0;
+        background: var(--primary-orange);
+        color: #ffffff;
       }
     }
   }
 
   .divider-h {
     height: 1rpx;
-    background: linear-gradient(90deg, transparent 0%, var(--divider) 50%, transparent 100%);
-    margin: 40rpx 0;
-  }
-
-  .tag-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20rpx;
-
-    .tag-pill {
-      padding: 40rpx 24rpx;
-      background: var(--bg-surface);
-      border: 3rpx solid var(--divider);
-      border-radius: var(--radius-md);
-      text-align: center;
-      box-shadow: var(--shadow-sm);
-      transition: all var(--duration-normal) var(--ease-spring);
-      position: relative;
-      overflow: hidden;
-
-      .t-body {
-        font-size: 34rpx;
-        /* 强制统一字号 */
-        font-weight: 700;
-        color: var(--text-main);
-        transition: color var(--duration-fast) var(--ease-smooth);
-      }
-
-      &.selected {
-        background: #ff9800 !important;
-        border-color: #ff9800 !important;
-        transform: translateY(-4rpx);
-        box-shadow: var(--shadow-accent);
-        animation: pop var(--duration-normal) var(--ease-spring);
-
-        .t-body {
-          color: #fff !important;
-          font-weight: 800;
-        }
-      }
-
-      &:active:not(.selected) {
-        background: #eeeeee;
-      }
-    }
+    background: #eeeeee;
+    margin-bottom: 60rpx;
   }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   🎤 备注 & 语音区
+   🎤 备注 & 语音 (Step 3)
 ───────────────────────────────────────────────────────────────────────── */
 .final-section {
-  padding: 40rpx;
-  animation: fadeIn var(--duration-normal) var(--ease-smooth) both;
-
   .input-group {
-    margin-bottom: 48rpx;
+    margin-top: 40rpx;
+    margin-bottom: 80rpx;
   }
 
   .google-textarea {
     width: 100%;
-    height: 320rpx;
-    background: var(--bg-surface);
-    border-radius: var(--radius-xl);
-    padding: 28rpx;
+    height: 300rpx;
+    font-size: 34rpx;
+    color: #333;
+    background-color: #f9f9f9;
+    padding: 30rpx;
     box-sizing: border-box;
-    border: 2rpx solid var(--divider);
-    font-size: 30rpx;
-    line-height: 1.6;
-    transition: border-color var(--duration-normal) var(--ease-smooth),
-      box-shadow var(--duration-normal) var(--ease-smooth);
-
-    &:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 6rpx var(--primary-glow);
-    }
+    border-radius: 12rpx;
   }
 
   .voice-control {
     display: flex;
     justify-content: center;
-    padding-bottom: 24rpx;
+    margin-bottom: 60rpx;
 
     .google-voice-btn {
-      width: 240rpx;
-      height: 240rpx;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: var(--text-on-primary);
-      border-radius: 50%;
+      width: 100%;
+      height: 120rpx;
+      background: var(--primary-orange);
+      color: #ffffff;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12rpx;
-      box-shadow: var(--shadow-primary);
-      transition: all var(--duration-normal) var(--ease-spring);
-      position: relative;
+      gap: 16rpx;
+      border-radius: 8rpx;
+      box-shadow: 0 4rpx 12rpx rgba(245, 124, 0, 0.2);
 
-      /* 外发光环 */
-      &::before {
-        content: "";
-        position: absolute;
-        inset: -12rpx;
-        border-radius: 50%;
-        border: 3rpx solid var(--primary-glow);
-        opacity: 0;
-        transition: opacity var(--duration-normal) var(--ease-smooth);
+      .mic-icon {
+        width: 44rpx;
+        height: 44rpx;
       }
 
       .mic-text {
-        font-size: 26rpx;
+        font-size: 36rpx;
         font-weight: 700;
+      }
+
+      &:active {
         opacity: 0.9;
+        transform: scale(0.98);
       }
 
       &.recording {
-        transform: scale(1.1);
-        background: linear-gradient(135deg, var(--danger) 0%, hsl(0, 72%, 40%) 100%);
-        box-shadow: var(--shadow-danger);
-        animation: breathe 1.5s infinite var(--ease-smooth);
-
-        &::before {
-          opacity: 1;
-          animation: rippleWave 1.5s infinite;
-          border-color: var(--danger-glow);
-        }
+        background: #e65100;
+        animation: pulse 1.5s infinite;
       }
+    }
+  }
 
-      &:active:not(.recording) {
-        background: var(--primary-dark);
-        box-shadow: 0 4rpx 16rpx var(--primary-glow);
-      }
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.7;
+    }
+
+    100% {
+      opacity: 1;
     }
   }
 
   .submit-tip {
     text-align: center;
-    font-size: 26rpx;
-    color: var(--text-muted);
-    padding: 24rpx 0;
-  }
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
-   🎬 页面切换动画
-───────────────────────────────────────────────────────────────────────── */
-.animate-fade-in-right {
-  animation: slideInRight var(--duration-slow) var(--ease-spring) both;
-}
-
-@keyframes rippleWave {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-
-  100% {
-    transform: scale(1.8);
-    opacity: 0;
+    font-size: 28rpx;
+    color: #999;
+    font-weight: 400;
   }
 }
