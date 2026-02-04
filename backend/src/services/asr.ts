@@ -27,7 +27,8 @@ function convertToWav(inputPath: string): Promise<string> {
     const outputPath = inputPath + '.wav';
     return new Promise((resolve, reject) => {
         // 强制转为 16k 采样率, 单声道, pcm_s16le (WAV标准)
-        const cmd = `ffmpeg -y -i "${inputPath}" -ac 1 -ar 16000 -f wav "${outputPath}"`;
+        // -t 60: 限制最大时长为60秒 (腾讯云ASR限制)
+        const cmd = `ffmpeg -y -i "${inputPath}" -t 60 -ac 1 -ar 16000 -f wav "${outputPath}"`;
         console.log(`🎤 Converting audio: ${cmd}`);
         exec(cmd, (error, stdout, stderr) => {
             if (error) {
