@@ -418,8 +418,8 @@
       }
 
       &.selected {
-        background: #f57c00 !important;
-        border-color: #f57c00 !important;
+        background: #ff9800 !important;
+        border-color: #ff9800 !important;
         transform: translateY(-4rpx);
         box-shadow: var(--shadow-accent);
         animation: pop var(--duration-normal) var(--ease-spring);
@@ -477,8 +477,7 @@
       height: 240rpx;
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: var(--text-on-primary);
-      border-radius: var(--radius-xl);
-      border: 4rpx solid #f57c00;
+      border-radius: 50%;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -500,7 +499,7 @@
       }
 
       .mic-text {
-        font-size: 32rpx;
+        font-size: 26rpx;
         font-weight: 700;
         opacity: 0.9;
       }
