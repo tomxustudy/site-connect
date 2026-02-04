@@ -553,8 +553,8 @@ export default function AdminApp() {
                 <h1 className="text-3xl font-black text-slate-900 tracking-tighter">系统配置</h1>
                 <div className="flex gap-8 mt-6">
                   <button onClick={() => setSettingsSubTab('users')} className={`pb-2 text-xs font-black uppercase tracking-widest transition-all ${settingsSubTab === 'users' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>账号管理</button>
-                  <button onClick={() => setSettingsSubTab('sites')} className={`pb-2 text-xs font-black uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>工地/项目</button>
-                  {currentUser?.role === 'SUPER_ADMIN' && <button onClick={() => setSettingsSubTab('tenants')} className={`pb-2 text-xs font-black uppercase tracking-widest transition-all ${settingsSubTab === 'tenants' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>租户管理</button>}
+                  <button onClick={() => setSettingsSubTab('sites')} className={`pb-2 text-xs font-black uppercase tracking-widest transition-all ${settingsSubTab === 'sites' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>项目管理</button>
+                  {currentUser?.role === 'SUPER_ADMIN' && <button onClick={() => setSettingsSubTab('tenants')} className={`pb-2 text-xs font-black uppercase tracking-widest transition-all ${settingsSubTab === 'tenants' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>客户管理</button>}
                 </div>
               </header>
 
@@ -655,7 +655,7 @@ export default function AdminApp() {
               )}
 
               {showSiteModal && (
-                <Modal title="新增工地/项目" onClose={() => setShowSiteModal(false)}>
+                <Modal title="新增项目" onClose={() => setShowSiteModal(false)}>
                   <SiteForm
                     tenants={tenants}
                     isSuperAdmin={currentUser?.role === 'SUPER_ADMIN'}
@@ -843,7 +843,7 @@ function SiteForm({ tenants, isSuperAdmin, onSuccess, getHeaders }: { tenants: T
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-1">
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">工地/项目名称 *</label>
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">项目名称 *</label>
         <input
           required
           className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all"
