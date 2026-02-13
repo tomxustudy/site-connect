@@ -1,0 +1,119 @@
+.login-container {
+    padding: 60rpx;
+    background: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .login-header {
+        margin-top: 100rpx;
+        margin-bottom: 80rpx;
+        text-align: center;
+
+        .main-title {
+            font-size: 64rpx;
+            font-weight: 800;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 10rpx;
+        }
+
+        .sub-title {
+            font-size: 30rpx;
+            color: #7f8c8d;
+            letter-spacing: 2rpx;
+            display: block;
+        }
+    }
+
+    .login-form {
+        width: 100%;
+
+        .input-group {
+            background: #fff;
+            padding: 30rpx;
+            border-radius: 20rpx;
+            margin-bottom: 30rpx;
+            box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.02);
+
+            .label {
+                font-size: 24rpx;
+                color: #95a5a6;
+                margin-bottom: 10rpx;
+                display: block;
+            }
+
+            .input-field {
+                font-size: 32rpx;
+                color: #2c3e50;
+            }
+        }
+
+        .login-btn {
+            background: #2c3e50;
+            color: #fff;
+            border-radius: 20rpx;
+            height: 100rpx;
+            line-height: 100rpx;
+            font-size: 34rpx;
+            font-weight: 600;
+            margin-top: 40rpx;
+            border: none;
+
+            &:active {
+                opacity: 0.9;
+            }
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 40rpx 0;
+
+            &::before,
+            &::after {
+                content: '';
+                flex: 1;
+                height: 1rpx;
+                background: #eee;
+            }
+
+            .divider-text {
+                margin: 0 20rpx;
+                font-size: 24rpx;
+                color: #ccc;
+            }
+        }
+
+        .wechat-btn {
+            background: #07c160;
+            color: #fff;
+            border-radius: 20rpx;
+            height: 100rpx;
+            line-height: 100rpx;
+            font-size: 34rpx;
+            font-weight: 600;
+            border: none;
+
+            &:active {
+                opacity: 0.9;
+            }
+        }
+    }
+
+    .login-footer {
+        position: absolute;
+        bottom: 80rpx;
+        left: 0;
+        right: 0;
+        text-align: center;
+        padding: 0 40rpx;
+
+        .footer-text {
+            font-size: 26rpx;
+            color: #bdc3c7;
+            display: block;
+        }
+    }
+}

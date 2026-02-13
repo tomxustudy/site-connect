@@ -1,0 +1,340 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   记录页 - 简约扁平化设计 (匹配截图 v1.0)
+═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --primary-orange: #f57c00;
+  --text-main: #333333;
+  --text-muted: #666666;
+  --bg-light: #ffffff;
+  --border-light: #eeeeee;
+}
+
+.record-page {
+  min-height: 100vh;
+  padding: 40rpx 40rpx;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📍 步骤指示器
+───────────────────────────────────────────────────────────────────────── */
+.stepper-header {
+  margin-bottom: 60rpx;
+
+  .stepper-track {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40rpx;
+    margin-bottom: 40rpx;
+
+    .step-dot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .dot-num {
+        font-size: 36rpx;
+        font-weight: 900;
+        color: #cccccc;
+      }
+
+      &.active .dot-num {
+        color: #000000;
+      }
+    }
+  }
+
+  .step-indicator-text {
+    display: block;
+    text-align: center;
+    font-size: 40rpx;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 40rpx;
+  }
+
+  /* 导航按钮区 */
+  .nav-actions-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20rpx;
+
+    .nav-btn {
+      margin: 0;
+      background: none;
+      padding: 0;
+      font-size: 34rpx;
+      font-weight: 500;
+      color: #666;
+      display: flex;
+      align-items: center;
+
+      &::after {
+        border: none;
+      }
+
+      &.back {
+        &.hidden {
+          visibility: hidden;
+        }
+      }
+
+      &.next {
+        color: var(--primary-orange);
+
+        &.disabled {
+          opacity: 0.3;
+        }
+
+        &.submit {
+          color: var(--primary-orange);
+        }
+      }
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📦 内容区域
+───────────────────────────────────────────────────────────────────────── */
+.record-card-container {
+  flex: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📷 拍照区域 (Step 1)
+───────────────────────────────────────────────────────────────────────── */
+.camera-section {
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20rpx;
+    margin-bottom: 40rpx;
+
+    .image-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 8rpx;
+      overflow: hidden;
+
+      .grid-img {
+        width: 100%;
+        height: 100%;
+      }
+
+      .delete-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        padding: 4rpx 10rpx;
+        font-size: 24rpx;
+      }
+    }
+
+    .camera-trigger-small {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10rpx;
+
+      .plus-icon-circle {
+        width: 120rpx;
+        height: 120rpx;
+        border-radius: 50%;
+        border: 4rpx dashed #d9a86a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .plus-sign {
+          font-size: 60rpx;
+          color: var(--primary-orange);
+          font-weight: 300;
+        }
+      }
+
+      .t-hint {
+        font-size: 26rpx;
+        color: #333;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .camera-trigger-central {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 120rpx;
+
+    .huge-icon-wrapper {
+      width: 240rpx;
+      height: 240rpx;
+      border-radius: 50%;
+      border: 4rpx solid #efcc9f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40rpx;
+      background-color: #ffffff;
+
+      .huge-icon {
+        width: 90rpx;
+        height: 90rpx;
+      }
+    }
+
+    .t-title {
+      font-size: 42rpx;
+      font-weight: 800;
+      color: #000;
+      margin-bottom: 20rpx;
+    }
+
+    .t-hint {
+      font-size: 30rpx;
+      color: #777;
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🏗️ 工地 & 标签 (Step 2)
+───────────────────────────────────────────────────────────────────────── */
+.combined-section {
+  .section-hint {
+    font-size: 34rpx;
+    font-weight: 700;
+    margin-bottom: 30rpx;
+    display: block;
+    color: #000;
+  }
+
+  .site-grid,
+  .tag-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20rpx;
+    margin-bottom: 60rpx;
+
+    .site-chip,
+    .tag-pill {
+      height: 120rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
+      font-size: 34rpx;
+      font-weight: 700;
+      color: #333;
+      text-align: center;
+      border-radius: 8rpx;
+      transition: all 0.2s ease;
+
+      &.selected {
+        background: #f57c00 !important;
+        /* 直接使用亮橙色 */
+        color: #ffffff !important;
+      }
+    }
+  }
+
+  .divider-h {
+    height: 1rpx;
+    background: #eeeeee;
+    margin-bottom: 60rpx;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🎤 备注 & 语音 (Step 3)
+───────────────────────────────────────────────────────────────────────── */
+.final-section {
+  .input-group {
+    margin-top: 40rpx;
+    margin-bottom: 80rpx;
+  }
+
+  .google-textarea {
+    width: 100%;
+    height: 300rpx;
+    font-size: 34rpx;
+    color: #333;
+    background-color: #f9f9f9;
+    padding: 30rpx;
+    box-sizing: border-box;
+    border-radius: 12rpx;
+  }
+
+  .voice-control {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 60rpx;
+
+    .google-voice-btn {
+      width: 100%;
+      height: 120rpx;
+      background: #f57c00;
+      /* 默认亮橙色 */
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16rpx;
+      border-radius: 8rpx;
+      box-shadow: 0 4rpx 12rpx rgba(245, 124, 0, 0.2);
+
+      .mic-icon {
+        width: 44rpx;
+        height: 44rpx;
+      }
+
+      .mic-text {
+        font-size: 36rpx;
+        font-weight: 700;
+      }
+
+      &:active {
+        opacity: 0.9;
+        transform: scale(0.98);
+      }
+
+      &.recording {
+        background: #D32F2F !important;
+        /* 按住后变为红色 */
+        animation: pulse 1.5s infinite;
+      }
+    }
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.7;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .submit-tip {
+    text-align: center;
+    font-size: 28rpx;
+    color: #999;
+    font-weight: 400;
+  }
+}

@@ -1,0 +1,15 @@
+.g-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s var(--ease-spring);
+    vertical-align: middle;
+
+    &:active {
+        transform: scale(0.9);
+    }
+
+    svg {
+        display: block;
+    }
+}

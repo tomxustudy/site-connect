@@ -1,0 +1,154 @@
+# 工厂项目字段映射配置表 (Strict Mode)
+# 基于严谨的代码审计生成。请修改 "factory_*" 字段。
+# 如果某个功能在工厂版中不需要，请在 factory_term 中填写 "DELETE"。
+
+# ============================================================
+# 1. 数据库实体与核心概念 (Database Entities)
+# ============================================================
+# 原逻辑：
+# - Tenant (租户) = 劳务公司/客户 -> 对应工厂系统的 "工厂主体" 或 "部门" (数据隔离边界)
+# - Site (工地) = 工作的物理地点 -> 对应 "车间" 或 "产线"
+# - Record (记录) = 发生的核心业务数据
+
+core_concepts:
+  - id: concept_site
+    original_term: "工地"
+    db_table: "sites"
+    db_field: "name"
+    description: "归类记录的物理地点"
+    factory_term: "部门" # 请修改 (例如: 车间, 产线)
+
+  - id: concept_record
+    original_term: "记录"
+    db_table: "records"
+    description: "核心业务数据单元"
+    factory_term: "记录" # 请修改 (例如: 报工单, 生产记录)
+
+# ============================================================
+# 2. 小程序端：首页卡片 (Miniprogram Home Dashboard)
+# ============================================================
+# 对应文件: miniprogram/src/pages/index/index.tsx
+
+dashboard_cards:
+  # 卡片 1 (原：人员管理)
+  - id: card_type_person
+    original_title: "人员管理"
+    original_desc: "考勤、报到、离职申请"
+    db_value: "person" (type字段)
+    factory_title: "生产报工" # 请修改
+    factory_desc: "考勤、报到" # 请修改
+
+  # 卡片 2 (原：材料动态)
+  - id: card_type_material
+    original_title: "材料动态"
+    original_desc: "进场验收、领用盘点"
+    db_value: "material" (type字段)
+    factory_title: "物料管理" # 请修改
+    factory_desc: "入库/领料/盘点" # 请修改
+
+  # 卡片 3 (原：费用支出)
+  - id: card_type_expense
+    original_title: "费用支出"
+    original_desc: "零星采购、机械租赁费"
+    db_value: "expense" (type字段)
+    factory_title: "费用支出" # 请修改
+    factory_desc: "零星采购/临时费用" # 请修改
+
+# ============================================================
+# 3. 小程序端：记录填报页 (Miniprogram Record UI)
+# ============================================================
+# 对应文件: miniprogram/src/pages/record/index.tsx
+
+record_ui_labels:
+  # 步骤提示
+  - id: ui_step_1
+    original_text: "第一步：拍摄照片"
+    factory_text: "第一步：现场拍照" # 请修改
+
+  - id: ui_step_2
+    original_text: "第二步：选择工地与标签"
+    factory_text: "第二步：选择部门与标签" # 请修改
+
+  - id: ui_step_3
+    original_text: "第三步：补充备注"
+    factory_text: "第三步：填写备注" # 请修改
+
+  # 字段标签 (数据库字段对照)
+  - id: label_site
+    original_text: "确认项目工地 *"
+    db_field: "site_name"
+    factory_text: "选择部门 *" # 请修改
+
+  - id: label_tags
+    original_text: "选择记录标签 *"
+    db_field: "tags"
+    factory_text: "选择标签 *" # 请修改
+
+  - id: label_desc
+    original_text: "手动输入文字描述... (必填)"
+    db_field: "description"
+    factory_text: "手动输入描述... (必填)" # 请修改
+
+  - id: btn_submit
+    original_text: "提交云端"
+    factory_text: "提交云端" # 请修改
+
+# ============================================================
+# 4. 业务选项配置 (Business Options / Tags)
+# ============================================================
+# 对应文件: miniprogram/src/pages/record/index.tsx (TAG_OPTIONS)
+# 这些是用户在“选择标签”时看到的固定选项
+
+tag_options:
+  # 对应 "人员管理" (person) 下的子选项
+  person_tags:
+    original: ['工人报到', '当日考勤', '请假/离职', '其他']
+    factory: ['当日考勤', '新工人报到', '其他'] # 请修改
+
+  # 对应 "材料动态" (material) 下的子选项
+  material_tags:
+    original: ['进场', '退场', '领用', '盘点']
+    factory: ['入库', '领料', '盘点'] # 请修改
+
+  # 对应 "费用支出" (expense) 下的子选项
+  expense_tags:
+    original: ['零星采购', '机械租赁', '生活费', '招待费']
+    factory: ['零星采购', '临时费用', '其他'] # 请修改
+
+# ============================================================
+# 5. 后台管理与报表 (Admin & Excel Export)
+# ============================================================
+# 对应文件: backend/src/index.ts (Excel Generation)
+
+excel_headers:
+  - id: col_site
+    original: "工地"
+    factory: "部门" # 请修改
+
+  - id: col_tags
+    original: "标签"
+    factory: "标签" # 请修改
+
+  - id: col_desc
+    original: "描述"
+    factory: "描述" # 请修改
+
+  - id: col_recorder
+    original: "记录人"
+    factory: "记录人" # 请修改
+
+  - id: col_amount
+    original: "金额"
+    factory: "金额" # 请修改 (注意：原amount字段是金额，工厂可能常用数量)
+
+  - id: col_price
+    original: "单价"
+    factory: "单价" # 请修改
+
+# ============================================================
+# 6. UI 主题色 (Theme)
+# ============================================================
+# 对应文件: scss files
+theme_color:
+  original: "#f57c00" (Orange/Amber)
+  factory: "#1976d2" # 请修改 (建议: Blue for Factory, Green for Safety)
