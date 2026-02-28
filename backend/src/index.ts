@@ -209,6 +209,7 @@ app.post('/api/wechat/login', async (req: any, res: any) => {
             });
         }
     } catch (err: any) {
+        console.error("wechat/login error:", err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
