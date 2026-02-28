@@ -9,12 +9,39 @@ import jwt from 'jsonwebtoken';
 import { query } from './config/db';
 import { transcribeAudio } from './services/asr';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'site-connect-secret-key-2026';
+// JWT Secret 必须从环境变量读取，禁止硬编码
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    console.error('FATAL: JWT_SECRET environment variable is not set');
+    process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// CORS 配置：仅允许指定的来源
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
+app.use(cors({
+    origin: ALLOWED_ORIGINS.length > 0 ? ALLOWED_ORIGINS : false,
+    credentials: true
+}));
+
+// 速率限制配置
+import rateLimit from 'express-rate-limit';
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15分钟
+    max: 100, // 每个IP最多100次请求
+    message: { success: false, message: '请求过于频繁，请稍后再试' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10, // 登录接口更严格
+    message: { success: false, message: '登录尝试过多，请稍后再试' }
+});
+app.use(generalLimiter);
+
 app.use(express.json());
 
 // 全局错误捕获，防止语音识别等异步任务崩溃导致服务死机
@@ -39,12 +66,24 @@ const authenticateToken = (req: any, res: any, next: any) => {
 
     if (!token) return res.status(401).json({ success: false, message: '未授权访问' });
 
-    jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+    jwt.verify(token, JWT_SECRET, async (err: any, user: any) => {
         if (err) return res.status(403).json({ success: false, message: '会话过期，请重新登录' });
 
-        // 支持超管通过 Header 切换租户上下文
+        // 支持超管通过 Header 切换租户上下文（仅用于管理操作，需验证租户存在）
         if (user.role === 'super_admin' && req.headers['x-tenant-id']) {
-            user.tenant_id = parseInt(req.headers['x-tenant-id'] as string);
+            const targetTenantId = parseInt(req.headers['x-tenant-id'] as string);
+            if (!isNaN(targetTenantId) && targetTenantId > 0) {
+                // 验证租户存在
+                try {
+                    const tenantCheck = await query("SELECT id FROM tenants WHERE id = $1", [targetTenantId]);
+                    if (tenantCheck.rows.length > 0) {
+                        user.tenant_id = targetTenantId;
+                        console.log(`[AUDIT] Super admin ${user.username} switched to tenant ${targetTenantId}`);
+                    }
+                } catch (e) {
+                    console.error('Tenant switch validation error:', e);
+                }
+            }
         }
 
         req.user = user;
@@ -60,6 +99,15 @@ const checkRole = (roles: string[]) => {
         }
         next();
     };
+};
+
+// 租户过滤辅助函数：生成带租户过滤的 SQL
+const buildTenantQuery = (user: { role: string, tenant_id: number }, baseSql: string, tenantField: string = 'tenant_id') => {
+    const isGlobalAdmin = user.role === 'super_admin' && !user.tenant_id;
+    if (isGlobalAdmin) {
+        return { sql: baseSql.replace(`WHERE ${tenantField}`, '').replace('tenant_id = $1', '').replace('AND tenant_id = $1', '').replace('OR tenant_id = $1', '').trim() || baseSql, params: [] };
+    }
+    return { sql: baseSql.includes('WHERE') ? `${baseSql} AND ${tenantField} = $1` : `${baseSql} WHERE ${tenantField} = $1`, params: [user.tenant_id] };
 };
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -118,7 +166,7 @@ async function generateBusinessId(siteName: string, recordType: string) {
 
 // --- 认证接口 ---
 
-app.post('/api/login', async (req: any, res: any) => {
+app.post('/api/login', authLimiter, async (req: any, res: any) => {
     const { username, password } = req.body;
     try {
         const result = await query("SELECT * FROM users WHERE username = $1", [username]);
@@ -136,7 +184,7 @@ app.post('/api/login', async (req: any, res: any) => {
         const token = jwt.sign(
             { uid: user.id, username: user.username, role: user.role, tenant_id: user.tenant_id },
             JWT_SECRET,
-            { expiresIn: '24h' }
+            { expiresIn: '2h' }
         );
 
         res.json({
@@ -157,7 +205,7 @@ app.post('/api/login', async (req: any, res: any) => {
 });
 
 // 微信手机号登录接口
-app.post('/api/wechat/login', async (req: any, res: any) => {
+app.post('/api/wechat/login', authLimiter, async (req: any, res: any) => {
     const { phoneNumber } = req.body; // 注意：实际生产中这里应该接收 code 并在后端换取手机号
 
     if (!phoneNumber) {
@@ -174,7 +222,7 @@ app.post('/api/wechat/login', async (req: any, res: any) => {
             const token = jwt.sign(
                 { uid: user.id, username: user.username, role: user.role, tenant_id: user.tenant_id },
                 JWT_SECRET,
-                { expiresIn: '24h' }
+                { expiresIn: '2h' }
             );
             return res.json({
                 success: true,
@@ -193,7 +241,7 @@ app.post('/api/wechat/login', async (req: any, res: any) => {
             const token = jwt.sign(
                 { uid: 0, username: `guest_${phoneNumber}`, role: 'worker', tenant_id: null },
                 JWT_SECRET,
-                { expiresIn: '24h' }
+                { expiresIn: '2h' }
             );
             return res.json({
                 success: true,
@@ -291,7 +339,7 @@ app.get('/api/export/xlsx', authenticateToken, async (req: any, res: any) => {
 
 // 导出照片压缩包接口
 app.get('/api/export/photos', authenticateToken, async (req: any, res: any) => {
-    console.log('📸 Photo export requested by:', req.user.username);
+    console.log('[Photo Export] Requested by:', req.user.username);
     try {
         const tenant_id = req.user.tenant_id;
         const isGlobalAdmin = req.user.role === 'super_admin' && !tenant_id;
@@ -300,9 +348,9 @@ app.get('/api/export/photos', authenticateToken, async (req: any, res: any) => {
             "SELECT id, images FROM records WHERE tenant_id = $1 AND images IS NOT NULL AND array_length(images, 1) > 0";
         const params = isGlobalAdmin ? [] : [tenant_id];
 
-        console.log('🔍 Executing SQL:', sql, 'Params:', params);
+        console.log('[Photo Export] Executing SQL');
         const result = await query(sql, params);
-        console.log('📊 Found', result.rows.length, 'records with images');
+        console.log('[Photo Export] Found', result.rows.length, 'records with images');
 
         const archive = archiver('zip', { zlib: { level: 9 } });
         res.setHeader('Content-Type', 'application/zip');
@@ -316,10 +364,16 @@ app.get('/api/export/photos', authenticateToken, async (req: any, res: any) => {
             console.log(`🖼️ Processing record ${row.id}, images:`, row.images);
             const images = Array.isArray(row.images) ? row.images : (typeof row.images === 'string' ? JSON.parse(row.images || '[]') : []);
             images.forEach((url: string) => {
+                // 路径遍历防护：仅提取文件名，并验证其安全性
                 const filename = path.basename(url);
+                // 验证文件名不包含路径分隔符或特殊字符
+                if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+                    console.warn('⚠️ Invalid filename:', filename);
+                    return;
+                }
                 const filePath = path.join(process.cwd(), 'uploads', filename);
                 if (fs.existsSync(filePath) && !addedFiles.has(filename)) {
-                    console.log('📎 Adding to zip:', filename);
+                    console.log('[Photo Export] Adding to zip:', filename);
                     archive.file(filePath, { name: filename });
                     addedFiles.add(filename);
                 } else {
@@ -328,12 +382,12 @@ app.get('/api/export/photos', authenticateToken, async (req: any, res: any) => {
             });
         });
 
-        console.log('✅ Finalizing archive...');
+        console.log('[Photo Export] Finalizing archive...');
         await archive.finalize();
-        console.log('🎁 Archive sent successfully');
+        console.log('[Photo Export] Archive sent successfully');
     } catch (err: any) {
-        console.error('❌ Photo export error:', err);
-        res.status(500).json({ success: false, error: err.message, stack: err.stack });
+        console.error('[Photo Export] Error:', err.message);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -522,15 +576,15 @@ app.post('/api/upload', upload.single('photo'), (req: any, res: any) => {
 // 语音识别接口
 app.post('/api/asr', upload.single('voice'), async (req: any, res: any) => {
     try {
-        console.log('--- ASR Request Started ---');
-        console.log('Headers:', JSON.stringify(req.headers));
+        console.log('[ASR] Request Started');
+        // console.log('Headers:', JSON.stringify(req.headers));
 
         if (!req.file) {
-            console.error('❌ No file in request');
+            console.error('[ASR] No file in request');
             return res.status(400).json({ success: false, message: '没有上传音频文件' });
         }
 
-        console.log('🎤 File info:', {
+        console.log('[ASR] File info:', {
             filename: req.file.filename,
             size: req.file.size,
             path: req.file.path,
@@ -538,21 +592,20 @@ app.post('/api/asr', upload.single('voice'), async (req: any, res: any) => {
         });
 
         const text = await transcribeAudio(req.file.path);
-        console.log('✅ Recognition Result:', text);
+        console.log('[ASR] Recognition Result:', text);
 
         res.json({
             success: true,
             text: text
         });
     } catch (err: any) {
-        console.error('❌ ASR Error Detail:', err);
+        console.error('[ASR] Error:', err.message);
         res.status(500).json({
             success: false,
-            error: err.message,
-            stack: err.stack
+            error: err.message
         });
     } finally {
-        console.log('--- ASR Request Finished ---');
+        console.log('[ASR] Request Finished');
     }
 });
 

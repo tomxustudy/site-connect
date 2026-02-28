@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { getCardConfig } from '../../config/ui-labels'
 import './index.scss'
 
 export default function Index() {
@@ -53,37 +54,37 @@ export default function Index() {
       <View className="main-actions">
         {/* Removed section title as requested */}
 
-        {/* 人员卡片 - 采用 Google Blue */}
+        {/* 人员卡片 */}
         <View className="action-card blue-ripple" onClick={() => startRecord('person')}>
           <View className="card-left">
             <Text className="card-icon">👷</Text>
             <View className="card-info">
-              <Text className="card-label t-title">生产报工</Text>
-              <Text className="card-desc t-body">考勤、报到</Text>
+              <Text className="card-label t-title">{getCardConfig('person').title}</Text>
+              <Text className="card-desc t-body">{getCardConfig('person').desc}</Text>
             </View>
           </View>
           <Text className="arrow">➔</Text>
         </View>
 
-        {/* 材料卡片 - 采用 Google Amber/Orange */}
+        {/* 材料卡片 */}
         <View className="action-card orange-ripple" onClick={() => startRecord('material')}>
           <View className="card-left">
             <Text className="card-icon">🧱</Text>
             <View className="card-info">
-              <Text className="card-label t-title">物料管理</Text>
-              <Text className="card-desc t-body">入库/领料/盘点</Text>
+              <Text className="card-label t-title">{getCardConfig('material').title}</Text>
+              <Text className="card-desc t-body">{getCardConfig('material').desc}</Text>
             </View>
           </View>
           <Text className="arrow">➔</Text>
         </View>
 
-        {/* 费用卡片 - 采用 Google Green */}
+        {/* 费用卡片 */}
         <View className="action-card green-ripple" onClick={() => startRecord('expense')}>
           <View className="card-left">
             <Text className="card-icon">¥</Text>
             <View className="card-info">
-              <Text className="card-label t-title">费用支出</Text>
-              <Text className="card-desc t-body">零星采购/临时费用</Text>
+              <Text className="card-label t-title">{getCardConfig('expense').title}</Text>
+              <Text className="card-desc t-body">{getCardConfig('expense').desc}</Text>
             </View>
           </View>
           <Text className="arrow">➔</Text>

@@ -4,8 +4,11 @@ import jwt from 'jsonwebtoken';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
 
-const JWT_SECRET = 'site-connect-secret-key-2026';
+dotenv.config();
+
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-do-not-use-in-prod';
 
 async function generateTestData() {
     console.log('🚀 Starting test data generation...');

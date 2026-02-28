@@ -29,11 +29,10 @@ function convertToWav(inputPath: string): Promise<string> {
         // 强制转为 16k 采样率, 单声道, pcm_s16le (WAV标准)
         // -t 60: 限制最大时长为60秒 (腾讯云ASR限制)
         const cmd = `ffmpeg -y -i "${inputPath}" -t 60 -ac 1 -ar 16000 -f wav "${outputPath}"`;
-        console.log(`🎤 Converting audio: ${cmd}`);
+        console.log(`[ASR] Converting audio`);
         exec(cmd, (error, stdout, stderr) => {
             if (error) {
-                console.error(`❌ FFmpeg Error: ${error.message}`);
-                console.error(`❌ FFmpeg Stderr: ${stderr}`);
+                console.error(`[ASR] FFmpeg Error: ${error.message}`);
                 return reject(error);
             }
             resolve(outputPath);
@@ -46,7 +45,7 @@ export async function transcribeAudio(filePath: string): Promise<string> {
     let cleanupNeeded = false;
 
     try {
-        console.log(`🎤 Processing file for ASR: ${filePath}`);
+        console.log(`[ASR] Processing file: ${filePath}`);
 
         // 1. 自动转换格式 (确保兼容 WebM, AAC, MP3 等)
         targetPath = await convertToWav(filePath);
@@ -56,7 +55,7 @@ export async function transcribeAudio(filePath: string): Promise<string> {
         const audioData = fs.readFileSync(targetPath);
         const base64Audio = audioData.toString("base64");
 
-        console.log(`🎤 Converted WAV size: ${audioData.length}`);
+        console.log(`[ASR] Converted WAV size: ${audioData.length}`);
 
         const params = {
             EngSerViceType: "16k_zh",
@@ -67,18 +66,18 @@ export async function transcribeAudio(filePath: string): Promise<string> {
         };
 
         return new Promise((resolve, reject) => {
-            console.log("☁️ 正在请求腾讯云 ASR...");
+            console.log("[ASR] Requesting Tencent Cloud...");
             client.SentenceRecognition(params, (err: any, response) => {
                 if (err) {
-                    console.error("❌ 腾讯云 ASR 接口报错:", err.message || err);
+                    console.error("[ASR] Tencent API Error:", err.message || err);
                     return reject(err);
                 }
-                console.log("✅ 腾讯云 ASR 请求成功");
+                console.log("[ASR] Tencent API Success");
                 resolve(response.Result || "");
             });
         });
     } catch (error: any) {
-        console.error("❌ ASR Service 内部错误:", error.message || error);
+        console.error("[ASR] Service Error:", error.message || error);
         throw error;
     } finally {
         if (cleanupNeeded && targetPath !== filePath) {

@@ -3,14 +3,11 @@ import { View, Text, Image, Textarea } from '@tarojs/components'
 import Taro, { useRouter, useDidShow } from '@tarojs/taro'
 import { RecordType } from '../../types'
 import { config } from '../../config';
+import { getRecordLabels, getTagOptions } from '../../config/ui-labels';
 import './index.scss'
 
-// --- 1. 静态配置 ---
-const TAG_OPTIONS: Record<string, string[]> = {
-  person: ['当日考勤', '新工人报到', '其他'],
-  material: ['入库', '领料', '盘点'],
-  expense: ['零星采购', '临时费用', '其他']
-};
+// --- 1. 静态配置 (使用 ui-labels 配置) ---
+// 标签选项现在从 ui-labels.ts 动态获取
 
 export default function RecordPage() {
   const router = useRouter();
@@ -73,7 +70,13 @@ export default function RecordPage() {
           });
         });
 
-        const resData = JSON.parse(uploadRes.data);
+        let resData;
+        try {
+          resData = JSON.parse(uploadRes.data);
+        } catch (e) {
+          console.error('JSON parse error:', e);
+          throw new Error('响应解析失败');
+        }
         if (resData.success && resData.text) {
           const text = resData.text.trim();
           setRecordData(prev => ({
@@ -174,8 +177,18 @@ export default function RecordPage() {
             'Authorization': `Bearer ${token}`
           }
         });
-        const d = JSON.parse(res.data);
-        if (d.success) uploadedUrls.push(d.url);
+        let d;
+        try {
+          d = JSON.parse(res.data);
+        } catch (e) {
+          console.error('Upload response parse error:', e);
+          continue; // 跳过此图片，继续上传其他图片
+        }
+        if (d.success && d.url) {
+          uploadedUrls.push(d.url);
+        } else {
+          console.warn('Upload failed:', d.error);
+        }
       }
       await Taro.request({
         url: `${API_BASE_URL}/api/records`,
@@ -211,9 +224,9 @@ export default function RecordPage() {
           ))}
         </View>
         <Text className="step-indicator-text">
-          {step === 1 && '第一步：现场拍照'}
-          {step === 2 && '第二步：选择部门与标签'}
-          {step === 3 && '第三步：填写备注'}
+          {step === 1 && getRecordLabels().step1}
+          {step === 2 && getRecordLabels().step2}
+          {step === 3 && getRecordLabels().step3}
         </Text>
 
         <View className="nav-actions-top">
@@ -267,7 +280,7 @@ export default function RecordPage() {
 
         {step === 2 && (
           <View className="combined-section animate-slide-up">
-            <Text className="section-hint">选择部门 *</Text>
+            <Text className="section-hint">{getRecordLabels().siteLabel}</Text>
             <View className="site-grid">
               {sites.map(site => (
                 <View
@@ -280,9 +293,9 @@ export default function RecordPage() {
               ))}
             </View>
             <View className="divider-h" />
-            <Text className="section-hint">选择标签 *</Text>
+            <Text className="section-hint">{getRecordLabels().tagsLabel}</Text>
             <View className="tag-grid">
-              {(TAG_OPTIONS[recordType] || []).map(tag => (
+              {getTagOptions(recordType).map(tag => (
                 <View key={tag} className={`tag-pill ${recordData.tags.includes(tag) ? 'selected' : ''}`} onClick={() => setRecordData(prev => ({ ...prev, tags: [tag] }))}>
                   {tag}
                 </View>
@@ -296,7 +309,7 @@ export default function RecordPage() {
             <View className="input-group">
               <Textarea
                 className="google-textarea"
-                placeholder="手动输入描述... (必填)"
+                placeholder={getRecordLabels().descPlaceholder}
                 value={recordData.description}
                 onInput={(e) => setRecordData(prev => ({ ...prev, description: e.detail.value }))}
               />

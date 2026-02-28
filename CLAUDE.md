@@ -12,91 +12,172 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 我不需要你经常输出情绪价值，如实公正地和我交互，表述清楚核心问题和解决方案即可
 
 
-## Project Overview
+## 项目概述
 
-This is a factory management monorepo containing three main components:
+这是一个工厂/工地 管理 Monorepo，包含三个主要组件：
 
-- **admin/** - Web admin dashboard (React + Vite + TailwindCSS)
-- **backend/** - Express.js REST API server (TypeScript)
-- **miniprogram/** - WeChat miniprogram (Taro framework with React)
+- **admin/** - Web 管理后台 (React + Vite + TailwindCSS)
+- **backend/** - Express.js REST API 服务端 (TypeScript)
+- **miniprogram/** - 微信小程序 (Taro + React)
 
-## Development Commands
+## 开发命令
 
-### Backend (`/backend`)
+### 后端 (`/backend`)
 ```bash
-npm run dev    # Start development server with hot reload (nodemon)
-npm run build  # Compile TypeScript to JavaScript
-npm run start  # Run production build from dist/
+npm run dev    # 启动开发服务器（热重载）
+npm run build  # 编译 TypeScript 到 JavaScript
+npm run start  # 运行生产构建
 ```
 
-### Admin Dashboard (`/admin`)
+### 管理后台 (`/admin`)
 ```bash
-npm run dev    # Start Vite dev server
-npm run build  # TypeScript compile + Vite build
+npm run dev    # 启动 Vite 开发服务器
+npm run build  # TypeScript 编译 + Vite 构建
 ```
 
-### WeChat Miniprogram (`/miniprogram`)
+### 微信小程序 (`/miniprogram`)
 ```bash
-npm run build:weapp   # Build for WeChat mini program
-npm run dev:weapp    # Build with watch mode
+npm run build:weapp   # 构建微信小程序
+npm run dev:weapp    # 监听模式构建
 ```
 
-## Architecture
+## 架构
 
-### Database Schema (PostgreSQL)
+### 数据库结构 (PostgreSQL)
 
-Key tables:
-- **tenants** - Factory/department entities (data isolation boundary)
-- **users** - System users with roles: `super_admin`, `clerk`, `worker`
-- **sites** - Departments/workshops (originally "projects")
-- **records** - Core business records with type (person/material/expense)
+主要表：
+- **tenants** - 工厂/部门实体（数据隔离边界）
+- **users** - 系统用户，角色：`super_admin`、`clerk`、`worker`
+- **sites** - 部门/车间（原"项目工地"）
+- **records** - 核心业务记录，包含类型（person/material/expense）
 
-Data isolation is implemented via `tenant_id` column - users can only see records belonging to their tenant.
+数据隔离通过 `tenant_id` 字段实现，用户只能查看所属租户的记录。
 
-### Backend API (`backend/src/index.ts`)
+### 后端 API (`backend/src/index.ts`)
 
-The main Express server with:
-- JWT authentication middleware
-- Role-based access control (RBAC)
-- File upload handling (multer)
-- Excel export (exceljs + archiver)
-- Tencent Cloud ASR integration for voice transcription
+主 Express 服务器，包含：
+- JWT 认证中间件
+- 基于角色的访问控制 (RBAC)
+- 文件上传处理 (multer)
+- Excel 导出 (exceljs + archiver)
+- 腾讯云 ASR 语音转文字集成
 
-### Roles (Important)
+### 角色（重要）
 
-**All role values in database must be lowercase**: `super_admin`, `clerk`, `worker`. Do not use uppercase variants.
+**数据库中所有角色值必须使用小写**：`super_admin`、`clerk`、`worker`。禁止使用大写变体。
 
-- `super_admin` - Full system access, can view all tenants
-- `clerk` - Administrative staff, manages records and users within their tenant
-- `worker` - Field workers, creates records via miniprogram
+- `super_admin` - 超级管理员，可查看所有租户
+- `clerk` - 文员，管理所在租户的记录和用户
+- `worker` - 现场人员，通过小程序创建记录
 
-### Miniprogram Pages (`miniprogram/src/pages/`)
+### 小程序页面 (`miniprogram/src/pages/`)
 
-- **index/** - Dashboard with card-based navigation
-- **login/** - Phone-based authentication
-- **record/** - Record creation with photo upload
-- **my-records/** - View own submitted records
+- **index/** - 首页，卡片式导航
+- **login/** - 手机号登录
+- **record/** - 记录创建，支持照片上传
+- **my-records/** - 查看自己提交的记录
 
-## Configuration
+## 配置
 
-- **Backend config**: `backend/.env` - Database connection, Tencent Cloud credentials
-- **Miniprogram config**: `miniprogram/src/config.ts` - API base URL
-- **Field mappings**: `field_mapping.yaml` - Terminology customization for factory version
+- **后端配置**：`backend/.env` - 数据库连接、腾讯云凭据
+- **小程序配置**：`miniprogram/src/config.ts` - API 基础 URL
+- **字段映射**：`field_mapping.yaml` - 工厂版术语自定义配置
 
-## Key Files
+## 关键文件
 
-- `backend/src/index.ts` - Main API server (25KB, contains all routes)
-- `backend/src/config/db.ts` - PostgreSQL connection
-- `admin/src/App.tsx` - Single-file admin dashboard (65KB)
-- `miniprogram/src/pages/record/index.tsx` - Record creation UI
+- `backend/src/index.ts` - 主 API 服务器（包含所有路由）
+- `backend/src/config/db.ts` - PostgreSQL 连接
+- `admin/src/App.tsx` - 单文件管理后台
+- `miniprogram/src/pages/record/index.tsx` - 记录创建页面
 
-## Database Initialization
+## 数据库初始化
 
-Run SQL scripts in `backend/database/`:
+运行 `backend/database/` 下的 SQL 脚本：
 ```bash
 node run_sql.js database/init_factory_db.sql
 ```
 
-## Tunnel Scripts
+## 隧道脚本
 
-The backend has Python tunnel scripts (`tunnel.py`, `tunnel_auto.py`, `tunnel_debug.py`) for development connectivity to remote database.
+后端包含 Python 隧道脚本（`tunnel.py`、`tunnel_auto.py`、`tunnel_debug.py`），用于开发时连接远程数据库。
+
+## UI 标签配置
+
+项目使用集中配置管理界面文字，支持两种模式切换：
+
+- **site** (工地模式)：适用于建筑工地、施工现场
+- **factory** (工厂模式)：适用于工厂车间、生产制造
+
+### 配置文件位置
+
+| 文件 | 用途 |
+|------|------|
+| `miniprogram/src/config/ui-labels.ts` | 小程序 UI 配置 |
+| `admin/src/ui-labels.ts` | 管理后台 UI 配置 |
+| `field_mapping.yaml` | 字段映射 YAML 配置 |
+
+### 切换模式
+
+修改对应文件中的 `APP_MODE` 即可切换：
+```typescript
+export const APP_MODE: AppMode = 'factory';  // 'site' 或 'factory'
+```
+
+---
+
+## 代码质量规范
+
+### 安全规范 (P0 - 必须遵守)
+
+1. **环境变量**
+   - 禁止在代码中硬编码密钥、密码、Token
+   - 所有敏感配置必须从 `process.env` 读取
+   - 启动时检查关键环境变量是否存在
+
+2. **认证与授权**
+   - 所有 API 必须验证 JWT Token
+   - 基于角色的访问控制 (RBAC)，角色值必须使用小写
+   - 租户数据隔离：所有查询必须包含 `tenant_id` 过滤
+
+3. **输入验证**
+   - 用户输入必须进行校验和清理
+   - 防止 SQL 注入：使用参数化查询
+   - 防止 XSS：图片 URL 必须验证协议（仅允许 http/https）
+   - 防止路径遍历：文件路径操作必须验证路径
+
+4. **速率限制**
+   - 登录接口：15 分钟内最多 10 次
+   - 通用接口：15 分钟内最多 100 次
+
+### 代码风格
+
+1. **TypeScript**
+   - 必须使用类型定义，禁止使用 `any` 类型（除非不可避免）
+   - 接口命名使用 PascalCase（如 `SiteRecord`）
+   - 常量使用大写蛇形命名（如 `JWT_SECRET`）
+
+2. **React/组件**
+   - 使用函数组件 + Hooks
+   - Prop 类型使用接口定义
+   - 组件文件保持单一职责
+
+3. **日志规范**
+   - 使用简洁的日志格式，不使用 emoji
+   - 错误日志包含上下文信息
+   - 生产环境不输出堆栈跟踪到响应
+
+### 可维护性
+
+1. **配置集中化**
+   - UI 文字、枚举值、选项数组必须提取到配置文件
+   - 避免在组件中硬编码业务相关文字
+
+2. **错误处理**
+   - 异步操作必须 try-catch
+   - 用户操作失败必须给出明确提示
+   - 内部错误不暴露给用户
+
+3. **代码组织**
+   - 类型定义集中到 `types/` 目录
+   - 复用组件提取到 `components/` 目录
+   - 配置统一放到 `config/` 目录

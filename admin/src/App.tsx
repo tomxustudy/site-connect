@@ -10,49 +10,25 @@ import axios from 'axios';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
+import { SiteRecord, Site, UserProfile, Tenant, RecordStatus } from './types';
+import { getAdminLabel } from './ui-labels';
 
-// --- 类型定义 ---
-type RecordStatus = 'pending' | 'confirmed' | 'voided';
+// 安全工具函数
 
-interface SiteRecord {
-  id: string;
-  type: string;
-  site_name: string;
-  tags: string[];
-  description: string;
-  image_url: string;
-  images?: string[]; // 新增：多图数组
-  server_created_at: string;
-  status: RecordStatus;
-  recorder_name?: string;
-  amount?: string;
-  unit_price?: string;
-  supplier?: string;
-  admin_note?: string;
-}
-
-interface Site {
-  id: number;
-  name: string;
-  location?: string;
-  created_at: string;
-}
-
-interface UserProfile {
-  id: number;
-  name: string;
-  phone: string;
-  username: string;
-  role: 'super_admin' | 'clerk' | 'worker';
-  tenant_id: number | null;
-  authorized_sites: string[];
-  created_at: string;
-  needs_password_change?: boolean;
-}
-
-interface Tenant {
-  id: number;
-  name: string;
+// 验证图片URL，防止 XSS (javascript:, data: 等危险协议)
+function sanitizeImageUrl(url: string | undefined | null): string | undefined {
+  if (!url) return undefined;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return url;
+    }
+  } catch {
+    if (!url.includes(':')) {
+      return url;
+    }
+  }
+  return undefined;
 }
 
 export default function AdminApp() {
@@ -286,13 +262,13 @@ export default function AdminApp() {
       <aside className="w-[280px] bg-[#0F172A] text-slate-400 flex flex-col shrink-0 shadow-2xl z-30">
         <div className="h-24 flex items-center px-8 border-b border-slate-800">
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center mr-3 text-white font-bold">工</div>
-          <span className="text-white font-bold text-lg">工地通 Admin</span>
+          <span className="text-white font-bold text-lg">{getAdminLabel('appNameShort')}</span>
         </div>
 
         <nav className="flex-1 px-4 space-y-2 mt-6">
           <NavItem active={activeTab === 'inbox'} label="收件箱" icon={<LayoutGrid size={20} />} badge={pendingCount} onClick={() => setActiveTab('inbox')} />
           <NavItem active={activeTab === 'export'} label="导出数据" icon={<Download size={20} />} onClick={() => setActiveTab('export')} />
-          <NavItem active={activeTab === 'settings'} label="工地设置" icon={<Settings size={20} />} onClick={() => setActiveTab('settings')} />
+          <NavItem active={activeTab === 'settings'} label={getAdminLabel('navSettings')} icon={<Settings size={20} />} onClick={() => setActiveTab('settings')} />
 
           {currentUser?.role === 'super_admin' && (
             <div className="mt-10 px-4">
@@ -337,7 +313,7 @@ export default function AdminApp() {
         <header className="h-16 bg-white border-b border-slate-200 flex justify-between items-center px-8 shadow-sm shrink-0 z-20">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold text-gray-800">
-              {activeTab === 'inbox' ? '收件箱' : activeTab === 'export' ? '导出数据' : '工地设置'}
+              {activeTab === 'inbox' ? getAdminLabel('navInbox') : activeTab === 'export' ? getAdminLabel('navExport') : getAdminLabel('navSettings')}
             </h1>
             {activeTab === 'inbox' && pendingCount > 0 && (
               <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold">
@@ -372,7 +348,7 @@ export default function AdminApp() {
                     </div>
                     <div className="relative group">
                       <select value={filterSite} onChange={e => setFilterSite(e.target.value)} className="appearance-none bg-white border border-slate-200 px-4 py-2 pr-10 rounded-lg text-sm font-bold text-slate-700 outline-none hover:border-blue-400 cursor-pointer transition-all">
-                        <option value="">所有工地</option>
+                        <option value="">{getAdminLabel('filterAllSites')}</option>
                         {dictionaries.sites.map((o: { name: string }) => <option key={o.name} value={o.name}>{o.name}</option>)}
                       </select>
                       <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
@@ -400,7 +376,7 @@ export default function AdminApp() {
                     <div key={r.id} onClick={() => setSelectedId(r.id)} className={`bg-white p-4 rounded-xl border transition-all cursor-pointer flex gap-5 items-start group ${selectedId === r.id ? 'border-blue-500 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500' : 'border-slate-100 hover:border-blue-300 hover:shadow-md'}`}>
                       {/* Image Placeholder */}
                       <div className="w-24 h-24 bg-slate-50 rounded-lg shrink-0 border border-slate-100 flex items-center justify-center overflow-hidden relative">
-                        {r.image_url ? <img src={r.image_url} className="w-full h-full object-cover" /> : <Box size={32} className="text-slate-200" />}
+                        {sanitizeImageUrl(r.image_url) ? <img src={sanitizeImageUrl(r.image_url)} className="w-full h-full object-cover" /> : <Box size={32} className="text-slate-200" />}
                       </div>
 
                       {/* Content */}
@@ -1066,7 +1042,7 @@ function RecordCard({ record, active, onClick }: any) {
     <div onClick={onClick} className={`bg-white p-8 rounded-[40px] border-2 transition-all duration-300 cursor-pointer ${active ? 'border-blue-500 shadow-2xl bg-blue-50/10' : 'border-white shadow-sm hover:border-slate-100 hover:-translate-y-1'}`}>
       <div className="flex gap-8">
         <div className="w-32 h-32 bg-slate-50 rounded-[32px] shrink-0 overflow-hidden border border-slate-100 flex items-center justify-center relative">
-          {record.image_url ? <img src={record.image_url} className="w-full h-full object-cover" /> : <Box className="text-slate-200 opacity-30" size={48} />}
+          {sanitizeImageUrl(record.image_url) ? <img src={sanitizeImageUrl(record.image_url)} className="w-full h-full object-cover" /> : <Box className="text-slate-200 opacity-30" size={48} />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -1096,7 +1072,7 @@ function HandleUI({ record, onClose, onAction }: any) {
       <div className="flex-1 overflow-y-auto p-10 space-y-8 pb-32">
         <section className="space-y-4">
           <div className="aspect-[4/3] bg-slate-50 rounded-[32px] overflow-hidden border border-slate-100 shadow-sm flex items-center justify-center group relative">
-            <ImageCarousel images={record.images && record.images.length > 0 ? record.images : (record.image_url ? [record.image_url] : [])} />
+            <ImageCarousel images={record.images && record.images.length > 0 ? record.images.filter(Boolean).map((img: string) => sanitizeImageUrl(img)).filter(Boolean) as string[] : (record.image_url ? [sanitizeImageUrl(record.image_url)].filter(Boolean) as string[] : [])} />
           </div>
           <div className="p-6 bg-blue-50/30 rounded-[24px] border border-blue-50 text-slate-700 font-medium italic relative">
             <div className="absolute top-0 left-0 w-1 h-full bg-blue-500/20"></div>
@@ -1150,7 +1126,7 @@ function LoginPage({ onLogin }: { onLogin: (u: UserProfile, t: string) => void }
       <div className="w-full max-w-md bg-white rounded-[40px] p-12 shadow-2xl animate-in fade-in zoom-in duration-500">
         <div className="flex flex-col items-center mb-10">
           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl mb-4 shadow-xl shadow-blue-500/20">工</div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tighter">工地通管理系统</h2>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tighter">{getAdminLabel('appName')}</h2>
           <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2">ADMINISTRATION PORTAL</p>
         </div>
 

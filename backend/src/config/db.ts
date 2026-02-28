@@ -11,8 +11,13 @@ const pool = new Pool({
   password: process.env.DB_PASS,
   port: parseInt(process.env.DB_PORT || '5432'),
   connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 10000,
-  query_timeout: 5000,
+  idleTimeoutMillis: 30000,
+  max: 20,
+});
+
+// 设置语句超时 (10秒)
+pool.on('connect', (client) => {
+  client.query("SET statement_timeout = '10s'");
 });
 
 // 测试连接

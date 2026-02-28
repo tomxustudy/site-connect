@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { View, Text, Input, Button } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { config } from '../../config';
+import { getLoginLabels } from '../../config/ui-labels';
 import './index.scss';
 
 const LoginPage = () => {
@@ -26,9 +27,10 @@ const LoginPage = () => {
             console.error('WeChat Auth Failed:', errMsg);
             return;
         }
-        // 注意：生产环境此处需通过 e.detail.code 由后端换取手机号
-        // 当前为演示逻辑，直接使用 Mock 或提示
-        performWechatLogin('13800138000');
+        // TODO: 生产环境需要通过 e.detail.code 调用后端接口换取手机号
+        // 后端需要调用微信 API: https://api.weixin.qq.com/sns/jscode2session
+        // 目前演示模式使用手动输入手机号
+        Taro.showToast({ title: '请使用手机号登录', icon: 'none' });
     };
 
     const performWechatLogin = async (phone: string) => {
@@ -62,11 +64,13 @@ const LoginPage = () => {
         }, 1500);
     }
 
+    const labels = getLoginLabels();
+
     return (
         <View className="login-container">
             <View className="login-header">
-                <Text className="main-title">工地助手</Text>
-                <Text className="sub-title">三步快速完成记录</Text>
+                <Text className="main-title">{labels.mainTitle}</Text>
+                <Text className="sub-title">{labels.subTitle}</Text>
             </View>
 
             <View className="login-form">
@@ -77,12 +81,12 @@ const LoginPage = () => {
                         onGetPhoneNumber={handleWechatAuthLogin}
                         loading={loading}
                     >
-                        <Text className="icon">微信</Text> 快捷验证
+                        <Text className="icon">微信</Text> {labels.wechatBtn}
                     </Button>
                 </View>
 
                 <View className="divider">
-                    <Text className="divider-text">或者手动输入</Text>
+                    <Text className="divider-text">{labels.dividerText}</Text>
                 </View>
 
                 <View className="input-group">
@@ -90,7 +94,7 @@ const LoginPage = () => {
                         className="input-field"
                         type="number"
                         maxlength={11}
-                        placeholder="输入您的手机号"
+                        placeholder={labels.phonePlaceholder}
                         value={phoneNumber}
                         onInput={(e) => setPhoneNumber(e.detail.value)}
                     />
@@ -101,12 +105,12 @@ const LoginPage = () => {
                     onClick={handleManualPhoneLogin}
                     loading={loading}
                 >
-                    快速记录
+                    {labels.manualBtn}
                 </Button>
             </View>
 
             <View className="login-footer">
-                <Text className="footer-text">如需开通权限，请联系管理员。</Text>
+                <Text className="footer-text">{labels.footerText}</Text>
             </View>
         </View>
     );

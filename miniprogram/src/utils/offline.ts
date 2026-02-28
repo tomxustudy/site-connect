@@ -69,7 +69,13 @@ export const OfflineManager = {
                 filePath: record.tempImagePath,
                 name: 'photo',
             });
-            const uploadData = JSON.parse(uploadRes.data);
+            let uploadData;
+            try {
+              uploadData = JSON.parse(uploadRes.data);
+            } catch (e) {
+              console.error('Upload response parse error:', e);
+              // JSON 解析失败则跳过图片上传，直接提交记录
+            }
             if (uploadData.success) {
                 serverImageUrl = uploadData.url;
             }
