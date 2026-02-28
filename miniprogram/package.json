@@ -12,8 +12,12 @@
   "scripts": {
     "prepare": "husky",
     "new": "taro new",
-    "build:weapp": "taro build --type weapp && cp -r src/custom-tab-bar dist/ && npm run sync-dist",
+    "build:weapp": "taro build --type weapp && cp -r src/custom-tab-bar dist/",
+    "build:weapp:site": "echo Building SITE version... && taro build --type weapp && cp -r src/custom-tab-bar dist/",
+    "build:weapp:factory": "echo Building FACTORY version... && taro build --type weapp && cp -r src/custom-tab-bar dist/",
     "sync-dist": "rsync -av dist/ /mnt/d/projects/factory-demo/",
+    "sync:site": "echo 同步到 D:\\projects\\site-demo && xcopy dist\\* D:\\projects\\site-demo\\ /E /I /Y",
+    "sync:factory": "echo 同步到 D:\\projects\\factory-demo && xcopy dist\\* D:\\projects\\factory-demo\\ /E /I /Y",
     "build:swan": "taro build --type swan",
     "build:alipay": "taro build --type alipay",
     "build:tt": "taro build --type tt",

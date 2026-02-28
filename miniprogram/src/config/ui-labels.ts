@@ -1,16 +1,18 @@
 /**
  * UI 文字标签配置
- * 用于切换 "site-connect" (工地) 和 "factory" (工厂) 两种模式
+ * 用于切换 "site" (工地) 和 "factory" (工厂) 两种模式
  *
- * 使用方式:
- * import { UI_LABELS, APP_MODE } from './ui-labels';
- * const labels = UI_LABELS[APP_MODE];
+ * 切换方式: 修改下方的 APP_MODE 值后重新构建
+ * - site:     工地模式
+ * - factory:  工厂模式
  */
 
 // ==================== 模式切换 ====================
-// 可选值: 'site' | 'factory'
+// ⚠️ 构建前必须修改此值！
+// site: 工地模式 (用于 site-demo)
+// factory: 工厂模式 (用于 factory-demo)
 export type AppMode = 'site' | 'factory';
-export const APP_MODE: AppMode = 'factory'; // 修改这里切换模式
+export const APP_MODE: AppMode = 'factory'; // ⚠️ 改为 'site' 构建工地版本
 
 // ==================== 首页卡片 ====================
 export interface CardConfig {
@@ -128,16 +130,138 @@ export const LOGIN_LABELS: Record<AppMode, LoginLabels> = {
 // ==================== Admin 后台 ====================
 export const ADMIN_LABELS: Record<AppMode, Record<string, string>> = {
   site: {
-    appName: '工地通 Admin',
+    appName: '工地管理后台',
     navSiteSettings: '工地设置',
     filterAllSites: '所有工地',
     colTypeSite: '类型/工地',
   },
   factory: {
-    appName: '工厂管理 Admin',
+    appName: '工厂管理后台',
     navSiteSettings: '部门设置',
     filterAllSites: '所有部门',
     colTypeSite: '类型/部门',
+  },
+};
+
+// ==================== 记录类型 ====================
+export const RECORD_TYPE_LABELS: Record<AppMode, Record<string, string>> = {
+  site: {
+    person: '人工',
+    material: '材料',
+    expense: '费用',
+  },
+  factory: {
+    person: '人工',
+    material: '材料',
+    expense: '费用',
+  },
+};
+
+// ==================== 记录状态 ====================
+export const RECORD_STATUS_LABELS: Record<AppMode, Record<string, string>> = {
+  site: {
+    pending: '待审',
+    confirmed: '已归档',
+    voided: '已作废',
+  },
+  factory: {
+    pending: '待审',
+    confirmed: '已归档',
+    voided: '已作废',
+  },
+};
+
+// ==================== 我的记录页 ====================
+export interface MyRecordsLabels {
+  title: string;
+  emptySite: string;
+  emptyDesc: string;
+  unknownTime: string;
+  confirmVoid: string;
+  voidContent: string;
+  processing: string;
+  voided: string;
+  loadFailed: string;
+  networkError: string;
+}
+
+export const MY_RECORDS_LABELS: Record<AppMode, MyRecordsLabels> = {
+  site: {
+    title: '我的记录',
+    emptySite: '未定义工地',
+    emptyDesc: '未填写备注说明',
+    unknownTime: '时间未知',
+    confirmVoid: '确认作废',
+    voidContent: '作废后的记录将不再计入日报统计，确定吗？',
+    processing: '正在处理...',
+    voided: '已作废',
+    loadFailed: '加载失败',
+    networkError: '网络错误',
+  },
+  factory: {
+    title: '我的记录',
+    emptySite: '未定义部门',
+    emptyDesc: '未填写备注说明',
+    unknownTime: '时间未知',
+    confirmVoid: '确认作废',
+    voidContent: '作废后的记录将不再计入统计，确定吗？',
+    processing: '正在处理...',
+    voided: '已作废',
+    loadFailed: '加载失败',
+    networkError: '网络错误',
+  },
+};
+
+// ==================== 记录页交互提示 ====================
+export interface RecordToastLabels {
+  recorderError: string;
+  recordTooShort: string;
+  recognizing: string;
+  parseError: string;
+  recognizeSuccess: string;
+  resultEmpty: string;
+  recognizeFailed: string;
+  identityTitle: string;
+  identityContent: string;
+  saving: string;
+  submitSuccess: string;
+  submitFailed: string;
+  recording: string;
+  pressToSpeak: string;
+}
+
+export const RECORD_TOAST_LABELS: Record<AppMode, RecordToastLabels> = {
+  site: {
+    recorderError: '录音设备异常',
+    recordTooShort: '录音太短',
+    recognizing: '语音识别中...',
+    parseError: '响应解析失败',
+    recognizeSuccess: '识别成功',
+    resultEmpty: '结果为空',
+    recognizeFailed: '识别失败',
+    identityTitle: '身份提示',
+    identityContent: '您的手机号未对应客户名称，请联系管理员！是否继续提交？',
+    saving: '保存中...',
+    submitSuccess: '提交成功',
+    submitFailed: '提交失败',
+    recording: '正在识别',
+    pressToSpeak: '按住说话',
+  },
+  factory: {
+    recorderError: '录音设备异常',
+    recordTooShort: '录音太短',
+    recognizing: '语音识别中...',
+    parseError: '响应解析失败',
+    recognizeSuccess: '识别成功',
+    resultEmpty: '结果为空',
+    recognizeFailed: '识别失败',
+    identityTitle: '身份提示',
+    identityContent: '您的手机号未对应客户名称，请联系管理员！是否继续提交？',
+    saving: '保存中...',
+    submitSuccess: '提交成功',
+    submitFailed: '提交失败',
+    recording: '正在识别',
+    pressToSpeak: '按住说话',
   },
 };
 
@@ -166,3 +290,7 @@ export const getCoreConcept = (key: string): string => CORE_CONCEPTS[APP_MODE]?.
 export const getAdminLabels = (): Record<string, string> => ADMIN_LABELS[APP_MODE];
 export const getExcelHeaders = (): Record<string, string> => EXCEL_HEADERS[APP_MODE];
 export const getLoginLabels = (): LoginLabels => LOGIN_LABELS[APP_MODE];
+export const getRecordTypeLabel = (type: string): string => RECORD_TYPE_LABELS[APP_MODE]?.[type] || type;
+export const getRecordStatusLabel = (status: string): string => RECORD_STATUS_LABELS[APP_MODE]?.[status] || status;
+export const getMyRecordsLabels = (): MyRecordsLabels => MY_RECORDS_LABELS[APP_MODE];
+export const getRecordToastLabels = (): RecordToastLabels => RECORD_TOAST_LABELS[APP_MODE];

@@ -3,7 +3,7 @@ import { View, Text, Image, Textarea } from '@tarojs/components'
 import Taro, { useRouter, useDidShow } from '@tarojs/taro'
 import { RecordType } from '../../types'
 import { config } from '../../config';
-import { getRecordLabels, getTagOptions } from '../../config/ui-labels';
+import { getRecordLabels, getTagOptions, getRecordToastLabels } from '../../config/ui-labels';
 import './index.scss'
 
 // --- 1. 静态配置 (使用 ui-labels 配置) ---
@@ -43,20 +43,20 @@ export default function RecordPage() {
       hasRecorderError.current = true;
       setIsRecording(false);
       Taro.hideLoading();
-      Taro.showModal({ title: '录音设备异常', content: err.errMsg, showCancel: false });
+      Taro.showModal({ title: getRecordToastLabels().recorderError, content: err.errMsg, showCancel: false });
     });
 
     recorderManager.onStop(async (res) => {
       const { tempFilePath, duration } = res;
       if (hasRecorderError.current) return;
       if (duration < 500) {
-        Taro.showToast({ title: '录音太短', icon: 'none' });
+        Taro.showToast({ title: getRecordToastLabels().recordTooShort, icon: 'none' });
         setIsRecording(false);
         return;
       }
 
       try {
-        Taro.showLoading({ title: '语音识别中...', mask: true });
+        Taro.showLoading({ title: getRecordToastLabels().recognizing, mask: true });
         const uploadRes: any = await new Promise((resolve, reject) => {
           Taro.uploadFile({
             url: `${API_BASE_URL}/api/asr`,
@@ -83,12 +83,12 @@ export default function RecordPage() {
             ...prev,
             description: prev.description ? `${prev.description}\n${text}` : text
           }));
-          Taro.showToast({ title: '识别成功', icon: 'success' });
+          Taro.showToast({ title: getRecordToastLabels().recognizeSuccess, icon: 'success' });
         } else {
           throw new Error(resData.error || '结果为空');
         }
       } catch (err: any) {
-        Taro.showToast({ title: '识别失败', icon: 'none' });
+        Taro.showToast({ title: getRecordToastLabels().recognizeFailed, icon: 'none' });
       } finally {
         setIsRecording(false);
         Taro.hideLoading();
@@ -154,10 +154,11 @@ export default function RecordPage() {
 
     const user = Taro.getStorageSync('user');
     if (user && user.isMatched === false) {
+      const toastLabels = getRecordToastLabels();
       const confirm = await new Promise((resolve) => {
         Taro.showModal({
-          title: '身份提示',
-          content: '您的手机号未对应客户名称，请联系管理员！是否继续提交？',
+          title: toastLabels.identityTitle,
+          content: toastLabels.identityContent,
           success: (res) => resolve(res.confirm)
         });
       });
@@ -165,7 +166,7 @@ export default function RecordPage() {
     }
 
     try {
-      Taro.showLoading({ title: '保存中...', mask: true });
+      Taro.showLoading({ title: getRecordToastLabels().saving, mask: true });
       const token = Taro.getStorageSync('token');
       const uploadedUrls: string[] = [];
       for (const path of recordData.tempImagePaths) {
@@ -204,10 +205,10 @@ export default function RecordPage() {
           images: uploadedUrls
         }
       });
-      Taro.showToast({ title: '提交成功', icon: 'success' });
+      Taro.showToast({ title: getRecordToastLabels().submitSuccess, icon: 'success' });
       setTimeout(() => Taro.navigateBack(), 1500);
     } catch (e) {
-      Taro.showToast({ title: '提交失败', icon: 'none' });
+      Taro.showToast({ title: getRecordToastLabels().submitFailed, icon: 'none' });
     } finally {
       Taro.hideLoading();
     }
@@ -317,7 +318,7 @@ export default function RecordPage() {
             <View className="voice-control">
               <View className={`google-voice-btn ${isRecording ? 'recording' : ''}`} onLongPress={startRecording} onTouchEnd={stopRecording}>
                 <Image src="https://img.icons8.com/ios-filled/50/ffffff/microphone.png" className="mic-icon" />
-                <Text className="mic-text">{isRecording ? '正在识别' : '按住说话'}</Text>
+                <Text className="mic-text">{isRecording ? getRecordToastLabels().recording : getRecordToastLabels().pressToSpeak}</Text>
               </View>
             </View>
             <Text className="submit-tip">* 请核对上方信息后点击右上角“提交云端”</Text>

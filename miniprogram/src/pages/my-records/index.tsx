@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { View, Text, Image, ScrollView } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { config } from '../../config'
+import { getMyRecordsLabels, getRecordTypeLabel, getRecordStatusLabel, getCoreConcept } from '../../config/ui-labels'
 import './index.scss'
 
 export default function MyRecords() {
@@ -24,11 +25,11 @@ export default function MyRecords() {
       if (res.data.success) {
         setRecords(res.data.data);
       } else {
-        Taro.showToast({ title: '加载失败', icon: 'none' });
+        Taro.showToast({ title: getMyRecordsLabels().loadFailed, icon: 'none' });
       }
     } catch (error) {
       console.error(error);
-      Taro.showToast({ title: '网络错误', icon: 'none' });
+      Taro.showToast({ title: getMyRecordsLabels().networkError, icon: 'none' });
     } finally {
       setLoading(false);
     }
@@ -54,13 +55,14 @@ export default function MyRecords() {
   });
 
   const handleVoidRecord = (id: string) => {
+    const labels = getMyRecordsLabels();
     Taro.showModal({
-      title: '确认作废',
-      content: '作废后的记录将不再计入日报统计，确定吗？',
+      title: labels.confirmVoid,
+      content: labels.voidContent,
       confirmColor: '#D93025',
       success: async (res) => {
         if (res.confirm) {
-          Taro.showLoading({ title: '正在处理...' });
+          Taro.showLoading({ title: labels.processing });
           try {
             const result = await Taro.request({
               url: `${config.baseUrl}/api/records/${id}/status`,
@@ -72,13 +74,13 @@ export default function MyRecords() {
             });
 
             if (result.data.success) {
-              Taro.showToast({ title: '已作废', icon: 'success' });
+              Taro.showToast({ title: labels.voided, icon: 'success' });
               fetchRecords(); // 刷新列表
             } else {
               throw new Error(result.data.message);
             }
           } catch (err) {
-            Taro.showToast({ title: '操作失败', icon: 'none' });
+            Taro.showToast({ title: labels.loadFailed, icon: 'none' });
           } finally {
             Taro.hideLoading();
           }
@@ -112,12 +114,12 @@ export default function MyRecords() {
                     <View className="card-top">
                       <View className="top-left">
                         <Text className={`status-chip ${item.status}`}>
-                          {getStatusName(item.status)}
+                          {getRecordStatusLabel(item.status)}
                         </Text>
-                        <Text className="site-pill t-hint">{item.site_name || '未定义工地'}</Text>
+                        <Text className="site-pill t-hint">{item.site_name || getMyRecordsLabels().emptySite}</Text>
                       </View>
                       <Text className={`type-tag ${getTagColor(item.type)}`}>
-                        {getTypeName(item.type)}
+                        {getRecordTypeLabel(item.type)}
                       </Text>
                     </View>
 
@@ -133,10 +135,10 @@ export default function MyRecords() {
                       </View>
 
                       <View className="content-detail">
-                        <Text className="record-description t-title">{item.description || '未填写备注说明'}</Text>
+                        <Text className="record-description t-title">{item.description || getMyRecordsLabels().emptyDesc}</Text>
                         <View className="record-meta">
                           <Text className="meta-time t-hint">{(() => {
-                            if (!item.server_created_at) return '时间未知';
+                            if (!item.server_created_at) return getMyRecordsLabels().unknownTime;
                             const utcDate = new Date(item.server_created_at);
                             const beijingDate = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000);
                             return beijingDate.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '-');
@@ -166,24 +168,6 @@ export default function MyRecords() {
 }
 
 // --- 辅助小工具 ---
-function getTypeName(type: string) {
-  const map: Record<string, string> = {
-    person: '人工',
-    material: '材料',
-    expense: '费用'
-  };
-  return map[type] || '其他';
-}
-
-function getStatusName(status: string) {
-  const map: Record<string, string> = {
-    pending: '待审',
-    confirmed: '已存证',
-    voided: '已作废'
-  };
-  return map[status] || status;
-}
-
 function getTagColor(type: string) {
   if (type === 'person') return 'label-blue';
   if (type === 'material') return 'label-orange';
